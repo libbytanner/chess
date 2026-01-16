@@ -10,8 +10,11 @@ import java.util.List;
  * signature of the existing methods.
  */
 public class ChessPiece {
-
+    ChessGame.TeamColor color;
+    PieceType type;
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        this.color = pieceColor;
+        this.type = type;
     }
 
     /**
@@ -48,6 +51,10 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        if (type.equals(PieceType.BISHOP)) {
+            BishopMoveCalculator calculator = new BishopMoveCalculator();
+            return calculator.calculateMoves(board, myPosition);
+        }
         return List.of();
     }
 }
