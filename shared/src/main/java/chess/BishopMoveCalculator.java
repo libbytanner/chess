@@ -11,9 +11,7 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
 
     private boolean validPosition(int row, int col) {
         if (row >= 1 && row <= 8) {
-            if (col >= 1 && col <= 8) {
-                return true;
-            }
+            return col >= 1 && col <= 8;
         }
         return false;
     }

@@ -10,9 +10,7 @@ public class RookMoveCalculator implements PieceMoveCalculator{
 
     private boolean validPosition(int row, int col) {
         if (row >= 1 && row <= 8) {
-            if (col >= 1 && col <= 8) {
-                return true;
-            }
+            return col >= 1 && col <= 8;
         }
         return false;
     }
@@ -45,7 +43,6 @@ public class RookMoveCalculator implements PieceMoveCalculator{
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         boolean blocked = false;
-        boolean valid;
         for (int newRow = row - 1; newRow >= 1; newRow--) {
             blocked = addMove(board, myPosition, moves, newRow, col, blocked);
         }
