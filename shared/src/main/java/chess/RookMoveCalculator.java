@@ -8,34 +8,6 @@ public class RookMoveCalculator implements PieceMoveCalculator{
     public RookMoveCalculator() {
     }
 
-    private boolean validPosition(int row, int col) {
-        if (row >= 1 && row <= 8) {
-            return col >= 1 && col <= 8;
-        }
-        return false;
-    }
-
-    private boolean addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col, boolean blocked) {
-        if (!blocked) {
-            if (validPosition(row, col)) {
-                ChessPosition newPosition = new ChessPosition(row, col);
-                ChessPiece myPiece = board.getPiece(myPosition);
-                ChessPiece otherPiece = board.getPiece(newPosition);
-                if (otherPiece != null) {
-                    if (!otherPiece.getTeamColor().equals(myPiece.getTeamColor())) {
-                        ChessMove move = new ChessMove(myPosition, newPosition, null);
-                        moves.add(move);
-                    }
-                    blocked = true;
-                } else {
-                    ChessMove move = new ChessMove(myPosition, newPosition, null);
-                    moves.add(move);
-                }
-            }
-        }
-        return blocked;
-    }
-
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
         int row = myPosition.getRow();

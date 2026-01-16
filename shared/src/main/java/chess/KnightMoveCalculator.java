@@ -4,15 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class KnightMoveCalculator {
+public class KnightMoveCalculator implements PieceMoveCalculator{
     public KnightMoveCalculator() {
-    }
-
-    private boolean validPosition(int row, int col) {
-        if (row >= 1 && row <= 8) {
-            return col >= 1 && col <= 8;
-        }
-        return false;
     }
 
     private void addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col) {
