@@ -58,6 +58,9 @@ public class ChessPiece {
         } else if (type.equals(PieceType.ROOK)) {
             RookMoveCalculator calculator = new RookMoveCalculator();
             return calculator.calculateMoves(board, myPosition);
+        } else if (type.equals(PieceType.KNIGHT)) {
+            KnightMoveCalculator calculator = new KnightMoveCalculator();
+            return calculator.calculateMoves(board, myPosition);
         }
         return List.of();
     }
