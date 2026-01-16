@@ -18,20 +18,6 @@ public class ChessPiece {
         this.type = type;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChessPiece that = (ChessPiece) o;
-        return color == that.color && type == that.type;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(color, type);
-    }
-
     /**
      * The various different chess piece options
      */
@@ -48,7 +34,7 @@ public class ChessPiece {
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-        throw new RuntimeException("Not implemented");
+        return color;
     }
 
     /**
@@ -71,5 +57,19 @@ public class ChessPiece {
             return calculator.calculateMoves(board, myPosition);
         }
         return List.of();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessPiece that = (ChessPiece) o;
+        return color == that.color && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(color, type);
     }
 }
