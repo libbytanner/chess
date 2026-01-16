@@ -8,26 +8,32 @@ public class RookMoveCalculator implements PieceMoveCalculator{
     public RookMoveCalculator() {
     }
 
+    private boolean validPosition(int row, int col) {
+        if (row >= 1 && row <= 8) {
+            if (col >= 1 && col <= 8) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private boolean addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col, boolean blocked) {
         if (!blocked) {
-            if (row >= 1 && row <= 8) {
-                if (col >= 1 && col <= 8) {
-                    ChessPosition newPosition = new ChessPosition(row, col);
-                    ChessPiece myPiece = board.getPiece(myPosition);
-                    ChessPiece otherPiece = board.getPiece(newPosition);
-                    if (otherPiece != null) {
-                        if (otherPiece.getTeamColor().equals(myPiece.getTeamColor())) {
-                            blocked = true;
-                        } else {
-                            ChessMove move = new ChessMove(myPosition, newPosition, null);
-                            moves.add(move);
-                            blocked = true;
-                        }
+            if (validPosition(row, col)) {
+                ChessPosition newPosition = new ChessPosition(row, col);
+                ChessPiece myPiece = board.getPiece(myPosition);
+                ChessPiece otherPiece = board.getPiece(newPosition);
+                if (otherPiece != null) {
+                    if (otherPiece.getTeamColor().equals(myPiece.getTeamColor())) {
+                        blocked = true;
                     } else {
                         ChessMove move = new ChessMove(myPosition, newPosition, null);
                         moves.add(move);
+                        blocked = true;
                     }
+                } else {
+                    ChessMove move = new ChessMove(myPosition, newPosition, null);
+                    moves.add(move);
                 }
             }
         }
@@ -39,6 +45,7 @@ public class RookMoveCalculator implements PieceMoveCalculator{
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         boolean blocked = false;
+        boolean valid;
         for (int newRow = row - 1; newRow >= 1; newRow--) {
             blocked = addMove(board, myPosition, moves, newRow, col, blocked);
         }
