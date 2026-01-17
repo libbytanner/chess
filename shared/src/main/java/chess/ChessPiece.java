@@ -18,6 +18,14 @@ public class ChessPiece {
         this.type = type;
     }
 
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "color=" + color +
+                ", type=" + type +
+                '}';
+    }
+
     /**
      * The various different chess piece options
      */
@@ -41,7 +49,7 @@ public class ChessPiece {
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-        throw new RuntimeException("Not implemented");
+        return type;
     }
 
     /**
@@ -66,6 +74,9 @@ public class ChessPiece {
             return calculator.calculateMoves(board, myPosition);
         } else if (type.equals(PieceType.QUEEN)) {
             QueenMoveCalculator calculator = new QueenMoveCalculator();
+            return calculator.calculateMoves(board, myPosition);
+        } else if (type.equals(PieceType.PAWN)) {
+            PawnMoveCalculator calculator = new PawnMoveCalculator();
             return calculator.calculateMoves(board, myPosition);
         }
         return List.of();

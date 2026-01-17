@@ -12,7 +12,6 @@ import java.util.Objects;
 public class ChessBoard {
     ChessPiece[][] squares = new ChessPiece[8][8];
     public ChessBoard() {
-
     }
 
     /**
@@ -41,7 +40,36 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        for (int row = 0; row < squares.length; row++) {
+            ChessGame.TeamColor color = null;
+            ChessPiece.PieceType type = null;
+            for (int col = 0; col < squares.length; col++) {
+                if (row == 1 || row == 6) {
+                    type = ChessPiece.PieceType.PAWN;
+                } else if (row == 0 || row == 7){
+                    if (col == 0 || col == 7) {
+                        type = ChessPiece.PieceType.ROOK;
+                    } else if (col == 1 || col == 6) {
+                        type = ChessPiece.PieceType.KNIGHT;
+                    } else if (col == 2 || col == 5) {
+                        type = ChessPiece.PieceType.BISHOP;
+                    } else if (col == 3) {
+                        type = ChessPiece.PieceType.QUEEN;
+                    } else {
+                        type = ChessPiece.PieceType.KING;
+                    }
+                }
+                if (row == 0 || row == 1) {
+                    color = ChessGame.TeamColor.WHITE;
+                } else if (row == 6 || row == 7) {
+                    color = ChessGame.TeamColor.BLACK;
+                }
+                if (color != null) {
+                    ChessPiece piece = new ChessPiece(color, type);
+                    squares[row][col] = piece;
+                }
+            }
+        }
     }
 
     @Override
@@ -56,5 +84,24 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(squares);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder string = new StringBuilder();
+        for (ChessPiece[] row : squares) {
+            for (ChessPiece piece : row) {
+                if (piece != null) {
+                    string.append(piece);
+                } else {
+                    string.append("empty space");
+                }
+                string.append(" | ");
+            }
+            string.append("\n");
+        }
+        return "ChessBoard{" +
+                "squares=" + string +
+                '}';
     }
 }
