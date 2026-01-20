@@ -17,26 +17,26 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
         for (int newRow = row - 1; newRow >= 1; newRow--) {
             int diff = Math.abs(row - newRow);
             int newCol = col - diff;
-            blocked = addMove(board, myPosition, moves, newRow, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, newRow, newCol, blocked, null);
         }
         blocked = false;
         for (int i = row - 1; i >= 1; i--) {
             int diff = Math.abs(row - i);
             int newCol = col + diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
         }
         blocked = false;
         for (int i = row + 1; i <= 8; i++) {
             int diff = Math.abs(row - i);
             int newCol = col - diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
 
         }
         blocked = false;
         for (int i = row + 1; i <= 8; i++) {
             int diff = Math.abs(row - i);
             int newCol = col + diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
         }
 
         return moves;

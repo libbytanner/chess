@@ -13,44 +13,44 @@ public class QueenMoveCalculator implements PieceMoveCalculator{
         int col = myPosition.getColumn();
         boolean blocked = false;
         for (int newRow = row - 1; newRow >= 1; newRow--) {
-            blocked = addMove(board, myPosition, moves, newRow, col, blocked);
+            blocked = addMove(board, myPosition, moves, newRow, col, blocked, null);
         }
         blocked = false;
         for (int newCol = col - 1; newCol >= 1; newCol--) {
-            blocked = addMove(board, myPosition, moves, row, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, row, newCol, blocked, null);
         }
         blocked = false;
         for (int newRow = row + 1; newRow <= 8; newRow++) {
-            blocked = addMove(board, myPosition, moves, newRow, col, blocked);
+            blocked = addMove(board, myPosition, moves, newRow, col, blocked, null);
         }
         blocked = false;
         for (int newCol = col + 1; newCol <= 8; newCol++) {
-            blocked = addMove(board, myPosition, moves, row, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, row, newCol, blocked, null);
         }
         blocked = false;
         for (int newRow = row - 1; newRow >= 1; newRow--) {
             int diff = Math.abs(row - newRow);
             int newCol = col - diff;
-            blocked = addMove(board, myPosition, moves, newRow, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, newRow, newCol, blocked, null);
         }
         blocked = false;
         for (int i = row - 1; i >= 1; i--) {
             int diff = Math.abs(row - i);
             int newCol = col + diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
         }
         blocked = false;
         for (int i = row + 1; i <= 8; i++) {
             int diff = Math.abs(row - i);
             int newCol = col - diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
 
         }
         blocked = false;
         for (int i = row + 1; i <= 8; i++) {
             int diff = Math.abs(row - i);
             int newCol = col + diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked);
+            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
         }
         return moves;
     }

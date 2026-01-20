@@ -14,9 +14,9 @@ public class KnightMoveCalculator implements PieceMoveCalculator{
         boolean blocked = false;
         int newRow = row + rowChange;
         int newCol = col - colChange;
-        addMove(board, myPosition, moves, newRow, newCol, blocked);
+        addMove(board, myPosition, moves, newRow, newCol, blocked, null);
         newCol = col + colChange;
-        addMove(board, myPosition, moves, newRow, newCol, blocked);
+        addMove(board, myPosition, moves, newRow, newCol, blocked, null);
     }
 
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {

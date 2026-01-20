@@ -14,7 +14,7 @@ public class KingMoveCalculator implements PieceMoveCalculator {
         boolean blocked = false;
         for (int i = -1; i <=1; i++) {
             for (int j = -1; j <=1; j++) {
-                addMove(board, myPosition, moves, row + i, col + j, blocked);
+                addMove(board, myPosition, moves, row + i, col + j, blocked, null);
             }
         }
         return moves;

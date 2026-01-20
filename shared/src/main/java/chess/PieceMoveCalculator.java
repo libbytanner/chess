@@ -11,7 +11,7 @@ interface PieceMoveCalculator {
           return false;
      }
 
-     default boolean addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col, boolean blocked) {
+     default boolean addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col, boolean blocked, ChessPiece.PieceType promotion) {
           if (!blocked) {
                if (validPosition(row, col)) {
                     ChessPosition newPosition = new ChessPosition(row, col);
@@ -19,12 +19,12 @@ interface PieceMoveCalculator {
                     ChessPiece otherPiece = board.getPiece(newPosition);
                     if (otherPiece != null) {
                          if (!otherPiece.getTeamColor().equals(myPiece.getTeamColor())) {
-                              ChessMove move = new ChessMove(myPosition, newPosition, null);
+                              ChessMove move = new ChessMove(myPosition, newPosition, promotion);
                               moves.add(move);
                          }
                          blocked = true;
                     } else {
-                         ChessMove move = new ChessMove(myPosition, newPosition, null);
+                         ChessMove move = new ChessMove(myPosition, newPosition, promotion);
                          moves.add(move);
                     }
                }
