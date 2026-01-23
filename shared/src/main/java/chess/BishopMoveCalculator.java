@@ -9,21 +9,23 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
     public BishopMoveCalculator() {
     }
 
-    public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
-        List<ChessMove> moves = new ArrayList<>();
-        int[][] directions = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+    private void addWhileOpen(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int rowChange, int colChange) {
+        boolean blocked = false;
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
-        for (int[] direction : directions) {
-            boolean blocked = false;
-            int newRow = row + direction[0];
-            int newCol = col + direction[1];
-            while (validPosition(newRow, newCol) && !blocked) {
-                blocked = addMove(board, myPosition, moves, newRow, newCol, blocked, null);
-                newRow += direction[0];
-                newCol += direction[1];
-            }
+        while (!blocked) {
+            row += rowChange;
+            col += colChange;
+            blocked = addMove(board, myPosition, moves, row, col, blocked, null);
         }
+    }
+
+    public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
+        List<ChessMove> moves = new ArrayList<>();
+        addWhileOpen(board, myPosition, moves, 1, 1);
+        addWhileOpen(board, myPosition, moves, 1, -1);
+        addWhileOpen(board, myPosition, moves, -1, 1);
+        addWhileOpen(board, myPosition, moves, -1, -1);
         return moves;
     }
 }
