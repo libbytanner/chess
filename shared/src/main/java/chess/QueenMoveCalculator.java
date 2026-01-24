@@ -9,48 +9,9 @@ public class QueenMoveCalculator implements PieceMoveCalculator{
 
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-        boolean blocked = false;
-        for (int newRow = row - 1; newRow >= 1; newRow--) {
-            blocked = addMove(board, myPosition, moves, newRow, col, blocked, null);
-        }
-        blocked = false;
-        for (int newCol = col - 1; newCol >= 1; newCol--) {
-            blocked = addMove(board, myPosition, moves, row, newCol, blocked, null);
-        }
-        blocked = false;
-        for (int newRow = row + 1; newRow <= 8; newRow++) {
-            blocked = addMove(board, myPosition, moves, newRow, col, blocked, null);
-        }
-        blocked = false;
-        for (int newCol = col + 1; newCol <= 8; newCol++) {
-            blocked = addMove(board, myPosition, moves, row, newCol, blocked, null);
-        }
-        blocked = false;
-        for (int newRow = row - 1; newRow >= 1; newRow--) {
-            int diff = Math.abs(row - newRow);
-            int newCol = col - diff;
-            blocked = addMove(board, myPosition, moves, newRow, newCol, blocked, null);
-        }
-        blocked = false;
-        for (int i = row - 1; i >= 1; i--) {
-            int diff = Math.abs(row - i);
-            int newCol = col + diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
-        }
-        blocked = false;
-        for (int i = row + 1; i <= 8; i++) {
-            int diff = Math.abs(row - i);
-            int newCol = col - diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
-
-        }
-        blocked = false;
-        for (int i = row + 1; i <= 8; i++) {
-            int diff = Math.abs(row - i);
-            int newCol = col + diff;
-            blocked = addMove(board, myPosition, moves, i, newCol, blocked, null);
+        int[][] directions = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        for (int[] direction : directions) {
+            addWhileOpen(board, myPosition, moves, direction[0], direction[1]);
         }
         return moves;
     }
