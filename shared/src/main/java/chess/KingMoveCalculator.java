@@ -11,11 +11,10 @@ public class KingMoveCalculator implements PieceMoveCalculator {
         List<ChessMove> moves = new ArrayList<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
+        int[][] directions = {{-1, 1}, {-1, 0}, {-1, -1}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {1, 0}};
         boolean blocked = false;
-        for (int i = -1; i <=1; i++) {
-            for (int j = -1; j <=1; j++) {
-                addMove(board, myPosition, moves, row + i, col + j, blocked, null);
-            }
+        for (int[] direction : directions) {
+            addMove(board, myPosition, moves, row + direction[0], col + direction[1], blocked, null);
         }
         return moves;
     }

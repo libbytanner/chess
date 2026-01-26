@@ -63,7 +63,7 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
         }
         if (promote) {
             promotePiece(board, moves, myPosition, row + rowChange, col);
-        } else if (validPosition(row, col)) {
+        } else {
             if (!checkSpace(board, row + rowChange, col)) {
                 addMove(board, myPosition, moves, row + rowChange, col, false, null);
             } else {
@@ -73,7 +73,7 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
                 addMove(board, myPosition, moves, row + rowChange, col + 1, false, null);
             }
             if (checkSpace(board, row + rowChange, col - 1)) {
-                addMove(board, myPosition, moves, row + rowChange, col -1, false, null);
+                addMove(board, myPosition, moves, row + rowChange, col - 1, false, null);
             }
         }
         if (!hasMoved && !blocked) {

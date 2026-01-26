@@ -11,10 +11,10 @@ public class BishopMoveCalculator implements PieceMoveCalculator {
 
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
-        addWhileOpen(board, myPosition, moves, 1, 1);
-        addWhileOpen(board, myPosition, moves, 1, -1);
-        addWhileOpen(board, myPosition, moves, -1, 1);
-        addWhileOpen(board, myPosition, moves, -1, -1);
+        int[][] directions = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
+        for (int[] direction : directions) {
+            addWhileOpen(board, myPosition, moves, direction[0], direction[1]);
+        }
         return moves;
     }
 }
