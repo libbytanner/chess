@@ -72,10 +72,14 @@ public class ChessGame {
         ChessBoard boardCopy = board.clone();
         boardCopy.addPiece(move.getEndPosition(), piece);
         boardCopy.addPiece(move.getStartPosition(), null);
-        if (piece == null || checkCheck(boardCopy, piece.getTeamColor())) {
+        if (piece == null) {
+            throw new InvalidMoveException("Piece is Null");
+        } else if (!piece.pieceMoves(board, move.getStartPosition()).contains(move)) {
+            throw new InvalidMoveException("Invalid move for piece type");
+        } else if (checkCheck(boardCopy, piece.getTeamColor())) {
             throw new InvalidMoveException("Move puts king in check");
         } else if (newPiece != null && piece.getTeamColor() == newPiece.getTeamColor()) {
-            throw new InvalidMoveException("Move puts king in check");
+            throw new InvalidMoveException("Cannot take own piece");
         } else {
             board.addPiece(move.getEndPosition(), piece);
             board.addPiece(move.getStartPosition(), null);
