@@ -20,7 +20,35 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return "{" + color + " " + type + '}';
+        if (color.equals(ChessGame.TeamColor.WHITE)) {
+            if (type.equals(PieceType.PAWN)) {
+                return "P";
+            } else if (type.equals(PieceType.KNIGHT)) {
+                return "N";
+            } else if (type.equals(PieceType.BISHOP)) {
+                return "B";
+            } else if (type.equals(PieceType.ROOK)) {
+                return "R";
+            } else if (type.equals(PieceType.KING)) {
+                return "K";
+            } else {
+                return "Q";
+            }
+        } else {
+            if (type.equals(PieceType.PAWN)) {
+                return "p";
+            } else if (type.equals(PieceType.KNIGHT)) {
+                return "n";
+            } else if (type.equals(PieceType.BISHOP)) {
+                return "b";
+            } else if (type.equals(PieceType.ROOK)) {
+                 return "r";
+            } else if (type.equals(PieceType.KING)) {
+                 return "k";
+            } else {
+                 return "q";
+            }
+        }
     }
 
     /**

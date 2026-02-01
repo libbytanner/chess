@@ -91,18 +91,16 @@ public class ChessBoard implements Cloneable {
         StringBuilder string = new StringBuilder();
         for (ChessPiece[] row : squares) {
             for (ChessPiece piece : row) {
+                string.append("|");
                 if (piece != null) {
                     string.append(piece);
                 } else {
-                    string.append("empty space");
+                    string.append(" ");
                 }
-                string.append(" | ");
             }
-            string.append("\n");
+            string.append("|\n");
         }
-        return "ChessBoard{" +
-                "squares=" + string +
-                '}';
+        return string.toString();
     }
 
     @Override
@@ -113,11 +111,12 @@ public class ChessBoard implements Cloneable {
             int index = 0;
             for (ChessPiece[] row : squares) {
                 newArray[index] = Arrays.copyOf(row, row.length);
+                index++;
             }
             clone.squares = newArray;
             return clone;
         } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
+            throw new RuntimeException();
         }
     }
 }
