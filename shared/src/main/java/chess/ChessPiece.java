@@ -20,10 +20,7 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return "ChessPiece{" +
-                "color=" + color +
-                ", type=" + type +
-                '}';
+        return "{" + color + " " + type + '}';
     }
 
     /**
@@ -95,4 +92,5 @@ public class ChessPiece {
     public int hashCode() {
         return Objects.hash(color, type);
     }
+
 }
