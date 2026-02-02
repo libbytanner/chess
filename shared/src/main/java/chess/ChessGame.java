@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -48,8 +49,23 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         Collection<ChessMove> moves = board.getPiece(startPosition).pieceMoves(board, startPosition);
-        for (ChessMove move : moves) {
-            ChessBoard clone = board.clone();
+        Collection<ChessMove> movesCopy = board.getPiece(startPosition).pieceMoves(board, startPosition);
+
+        ChessPiece piece = board.getPiece(startPosition);
+        for (ChessMove move : movesCopy) {
+            ChessBoard boardCopy = board.clone();
+            ChessPiece newPiece = board.getPiece(move.getEndPosition());
+            boardCopy.addPiece(move.getEndPosition(), piece);
+            boardCopy.addPiece(move.getStartPosition(), null);
+            if (piece == null) {
+                moves.remove(move);
+            } else if (!piece.pieceMoves(board, move.getStartPosition()).contains(move)) {
+                moves.remove(move);
+            } else if (checkCheck(boardCopy, piece.getTeamColor())) {
+                moves.remove(move);
+            } else if (newPiece != null && piece.getTeamColor() == newPiece.getTeamColor()) {
+                moves.remove(move);
+            }
         }
         return moves;
     }
@@ -68,22 +84,12 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
-        ChessPiece newPiece = board.getPiece(move.getEndPosition());
-        ChessBoard boardCopy = board.clone();
-        boardCopy.addPiece(move.getEndPosition(), piece);
-        boardCopy.addPiece(move.getStartPosition(), null);
-        if (piece == null) {
-            throw new InvalidMoveException("Piece is Null");
-        } else if (!piece.pieceMoves(board, move.getStartPosition()).contains(move)) {
-            throw new InvalidMoveException("Invalid move for piece type");
-        } else if (checkCheck(boardCopy, piece.getTeamColor())) {
-            throw new InvalidMoveException("Move puts king in check");
-        } else if (newPiece != null && piece.getTeamColor() == newPiece.getTeamColor()) {
-            throw new InvalidMoveException("Cannot take own piece");
-        } else {
+        if (piece != null && validMoves(move.getStartPosition()).contains(move)){
             board.addPiece(move.getEndPosition(), piece);
             board.addPiece(move.getStartPosition(), null);
             switchTeamColor();
+        } else {
+            throw new InvalidMoveException("Invalid Move");
         }
     }
 
@@ -164,5 +170,19 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamTurn, board);
     }
 }
