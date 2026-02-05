@@ -125,30 +125,37 @@ public class ChessGame {
         }
         return kingPosition;
     }
+
+    private boolean pieceCanCapture(ChessBoard board, TeamColor teamColor, ChessPosition position,
+                                    ChessPosition kingPosition) {
+        ChessPiece piece = board.getPiece(position);
+        if (piece != null && !piece.getTeamColor().equals(teamColor)) {
+            Collection<ChessMove> moves = piece.pieceMoves(board, position);
+            if (piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
+                ChessPiece.PieceType[] promotions = {ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK,
+                        ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, null};
+                for (ChessPiece.PieceType promotion : promotions) {
+                    ChessMove newMove = new ChessMove(position, kingPosition, promotion);
+                    if (moves.contains(newMove)) {
+                        return true;
+                    }
+                }
+            } else {
+                ChessMove newMove = new ChessMove(position, kingPosition, null);
+                return moves.contains(newMove);
+            }
+        }
+        return false;
+    }
+
     public boolean checkCheck(ChessBoard board, TeamColor teamColor) {
         ChessPosition kingPosition = findKing(board, teamColor);
 
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <=8; j++) {
                 ChessPosition position = new ChessPosition(i, j);
-                ChessPiece piece = board.getPiece(position);
-                if (piece != null && !piece.getTeamColor().equals(teamColor)) {
-                    Collection<ChessMove> moves = piece.pieceMoves(board, position);
-                    if (piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
-                        ChessPiece.PieceType[] promotions = {ChessPiece.PieceType.QUEEN,ChessPiece.PieceType.ROOK,
-                                ChessPiece.PieceType.BISHOP,ChessPiece.PieceType.KNIGHT, null};
-                        for (ChessPiece.PieceType promotion : promotions) {
-                            ChessMove newMove = new ChessMove(position, kingPosition, promotion);
-                            if (moves.contains(newMove)) {
-                                return true;
-                            }
-                        }
-                    } else {
-                        ChessMove newMove = new ChessMove(position, kingPosition, null);
-                        if (moves.contains(newMove)) {
-                            return true;
-                        }
-                    }
+                if (pieceCanCapture(board, teamColor, position, kingPosition)) {
+                    return true;
                 }
             }
         }
