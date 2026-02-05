@@ -4,7 +4,8 @@ import java.util.Collection;
 
 
 interface PieceMoveCalculator {
-     default void addWhileOpen(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int rowChange, int colChange) {
+     default void addWhileOpen(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves,
+                               int rowChange, int colChange) {
           boolean blocked = false;
           int row = myPosition.getRow();
           int col = myPosition.getColumn();
@@ -22,7 +23,8 @@ interface PieceMoveCalculator {
           return false;
      }
 
-     default boolean addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col, boolean blocked, ChessPiece.PieceType promotion) {
+     default boolean addMove(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves, int row, int col,
+                             boolean blocked, ChessPiece.PieceType promotion) {
           if (!blocked) {
                if (validPosition(row, col)) {
                     ChessPosition newPosition = new ChessPosition(row, col);
