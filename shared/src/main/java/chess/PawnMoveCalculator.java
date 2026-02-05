@@ -10,7 +10,8 @@ public class PawnMoveCalculator implements PieceMoveCalculator {
 
 
     private void promotePiece(ChessBoard board, List<ChessMove> moves, ChessPosition myPosition, int row, int col) {
-        ChessPiece.PieceType[] promotions = {ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT};
+        ChessPiece.PieceType[] promotions = {ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK,
+                ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT};
         for (ChessPiece.PieceType promotion : promotions) {
             boolean blocked = false;
             if (!checkSpace(board, row, col)) {
