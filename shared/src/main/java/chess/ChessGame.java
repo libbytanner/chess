@@ -186,20 +186,20 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         if (!isInCheck(teamColor)) {
             for (int i = 1; i <= 8; i++) {
-                for (int j = 1; j <= 8; j++) {
+                for (int j = 1; j <=8; j++) {
                     ChessPosition position = new ChessPosition(i, j);
                     ChessPiece piece = board.getPiece(position);
                     if (piece != null && piece.getTeamColor().equals(teamColor)) {
-                        Collection<ChessMove> validMoves = validMoves(position);
-                        if (!validMoves.isEmpty()) {
+                        if(!validMoves(position).isEmpty()) {
                             return false;
                         }
                     }
-
                 }
             }
+            return true;
+        } else {
+            return false;
         }
-        return true;
     }
     /**
      * Sets this game's chessboard with a given board
