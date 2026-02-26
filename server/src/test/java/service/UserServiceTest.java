@@ -8,7 +8,7 @@ import server.UserService;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTest {
     UserService service;
@@ -26,6 +26,20 @@ public class UserServiceTest {
         ArrayList<UserData> obsUsers = service.getUserDao().getUsers();
         assertEquals(1, obsUsers.size());
         assertEquals("username", obsUsers.getFirst().username());
+    }
+
+    @Test
+    public void registerBadRequest() {
+        RegisterRequest initialRequest = new RegisterRequest("username", "password", "email");
+        RegisterRequest secondRequest =
+                new RegisterRequest("username", "hello", "another@email");
+        try {
+            service.register(initialRequest);
+        } catch (ExistingUserException _) {}
+        assertThrows(ExistingUserException.class, () -> service.register(secondRequest));
+        ArrayList<UserData> obsUsers = service.getUserDao().getUsers();
+        assertEquals(1, obsUsers.size());
+
     }
 
 }
