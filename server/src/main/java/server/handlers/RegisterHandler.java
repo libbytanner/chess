@@ -1,26 +1,15 @@
-package server;
+package server.handlers;
 
-import com.google.gson.Gson;
 import dataaccess.ExistingUserException;
 import io.javalin.http.Context;
 import model.RegisterRequest;
-import model.RegisterResult;
+import server.UserService;
 
 public class RegisterHandler extends BaseHandler {
     UserService service = new UserService();
 
-    public RegisterRequest fromJson(Context context) {
-        var serializer = new Gson();
-        return serializer.fromJson(context.body(), RegisterRequest.class);
-    }
-
-    public String toJson(RegisterResult result) {
-        var serializer = new Gson();
-        return serializer.toJson(result);
-    }
-
     public void handleRequest(Context context) {
-        RegisterRequest request = fromJson(context);
+        RegisterRequest request = (RegisterRequest) fromJson(context, RegisterRequest.class);
         try {
             var response = service.register(request);
             context.json(toJson(response));
