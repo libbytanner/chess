@@ -26,8 +26,7 @@ public class RegisterHandler extends BaseHandler {
             context.json(toJson(response));
         } catch (ExistingUserException exception) {
             context.status(403);
-            ErrorResult result = new ErrorResult();
-            context.result();
+            context.result("{\"message\" : \"Error: username already taken\" }");
         }
     }
 }

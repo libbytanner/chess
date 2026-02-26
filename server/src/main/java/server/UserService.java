@@ -12,6 +12,15 @@ import model.UserData;
 public class UserService {
     UserMemoryDAO userDao = new UserMemoryDAO();
     AuthMemoryDAO authDao = new AuthMemoryDAO();
+
+    public UserMemoryDAO getUserDao() {
+        return userDao;
+    }
+
+    public AuthMemoryDAO getAuthDao() {
+        return authDao;
+    }
+
     public RegisterResult register(RegisterRequest request) throws ExistingUserException {
         if (userDao.getUser(request.username()) != null) {
             throw new ExistingUserException("User already exists");
