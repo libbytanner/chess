@@ -5,7 +5,7 @@ import model.UserData;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class UserMemoryDAO {
+public class UserMemoryDAO implements UserDAO {
     ArrayList<UserData> users = new ArrayList<>();
 
     public ArrayList<UserData> getUsers() {
