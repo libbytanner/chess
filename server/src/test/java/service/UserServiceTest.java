@@ -20,9 +20,7 @@ public class UserServiceTest {
     @Test
     public void registerGoodRequest() {
         RegisterRequest request = new RegisterRequest("username", "password", "email");
-        try {
-            service.register(request);
-        } catch (ExistingUserException _) {}
+        assertDoesNotThrow(() -> service.register(request));
         ArrayList<UserData> obsUsers = service.getUserDao().getUsers();
         assertEquals(1, obsUsers.size());
         assertEquals("username", obsUsers.getFirst().username());
@@ -35,7 +33,9 @@ public class UserServiceTest {
                 new RegisterRequest("username", "hello", "another@email");
         try {
             service.register(initialRequest);
-        } catch (ExistingUserException _) {}
+        } catch (ExistingUserException e) {
+            throw new RuntimeException(e);
+        }
         assertThrows(ExistingUserException.class, () -> service.register(secondRequest));
         ArrayList<UserData> obsUsers = service.getUserDao().getUsers();
         assertEquals(1, obsUsers.size());
