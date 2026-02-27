@@ -28,10 +28,10 @@ public class UserService {
             throw new ExistingUserException("User already exists");
         }
         UserData user = new UserData(request.username(), request.password(), request.email());
-        userDao.createUser(user);
+        userDao.addUser(user);
         String token = authDao.generateToken();
         AuthData auth = new AuthData(token, request.username());
-        authDao.createAuth(auth);
+        authDao.addAuth(auth);
         return new RegisterResult(request.username(), token);
     }
 }

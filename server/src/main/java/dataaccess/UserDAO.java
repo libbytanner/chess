@@ -7,6 +7,6 @@ import java.util.ArrayList;
 public interface UserDAO {
     ArrayList<UserData> getUsers();
     UserData getUser(String username);
-    void createUser(UserData user);
+    void addUser(UserData user);
     void clear();
 }

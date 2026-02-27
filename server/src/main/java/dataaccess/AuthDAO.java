@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public interface AuthDAO {
     ArrayList<AuthData> getAuthTokens();
-    void createAuth(AuthData auth);
+    void addAuth(AuthData auth);
     String generateToken();
     AuthData findAuth(String token);
 

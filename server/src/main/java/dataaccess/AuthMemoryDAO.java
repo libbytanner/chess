@@ -13,7 +13,7 @@ public class AuthMemoryDAO implements AuthDAO{
         return authTokens;
     }
 
-    public void createAuth(AuthData auth) {
+    public void addAuth(AuthData auth) {
         authTokens.add(auth);
     }
 

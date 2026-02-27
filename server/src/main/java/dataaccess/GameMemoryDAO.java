@@ -1,18 +1,18 @@
 package dataaccess;
 
-import chess.ChessGame;
+import model.GameData;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameMemoryDAO implements GameDAO {
-    ArrayList<ChessGame> games = new ArrayList<>();
-    public List<ChessGame> listGames() {
+    ArrayList<GameData> games = new ArrayList<>();
+    public List<GameData> listGames() {
         return games;
     }
 
-    public int createGame(String s) {
-        return 0;
+    public void addGame(GameData game) {
+        games.add(game);
     }
 
     public void joinGame() {

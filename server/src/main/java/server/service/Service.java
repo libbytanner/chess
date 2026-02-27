@@ -15,6 +15,6 @@ public class Service {
     }
 
     public boolean verifyAuth(String authToken) {
-        return authDao.getAuth(authToken) != null;
+        return authDao.findAuth(authToken) != null;
     }
 }

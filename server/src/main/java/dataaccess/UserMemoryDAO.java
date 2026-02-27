@@ -21,7 +21,7 @@ public class UserMemoryDAO implements UserDAO {
         return null;
     }
 
-    public void createUser(UserData user) {
+    public void addUser(UserData user) {
         users.add(user);
     }
 
