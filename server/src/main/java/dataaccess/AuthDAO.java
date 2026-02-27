@@ -8,5 +8,8 @@ public interface AuthDAO {
     ArrayList<AuthData> getAuthTokens();
     void createAuth(AuthData auth);
     String generateToken();
+    AuthData findAuth(String token);
+
     void clear();
+
 }

@@ -2,10 +2,8 @@ package server.handlers;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
-import dataaccess.UserMemoryDAO;
 import io.javalin.http.Context;
-import server.ClearService;
-import server.UserService;
+import server.service.ClearService;
 
 public class ClearHandler extends BaseHandler {
     UserDAO userDao;

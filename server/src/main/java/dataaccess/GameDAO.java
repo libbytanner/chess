@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface GameDAO {
     List<ChessGame> listGames();
-    int createGame();
+    int createGame(String s);
     void joinGame();
     void clear();
 

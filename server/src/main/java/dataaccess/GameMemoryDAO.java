@@ -8,10 +8,10 @@ import java.util.List;
 public class GameMemoryDAO implements GameDAO {
     ArrayList<ChessGame> games = new ArrayList<>();
     public List<ChessGame> listGames() {
-        return List.of();
+        return games;
     }
 
-    public int createGame() {
+    public int createGame(String s) {
         return 0;
     }
 

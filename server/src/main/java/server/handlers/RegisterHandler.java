@@ -5,7 +5,7 @@ import dataaccess.ExistingUserException;
 import dataaccess.UserDAO;
 import io.javalin.http.Context;
 import model.RegisterRequest;
-import server.UserService;
+import server.service.UserService;
 
 public class RegisterHandler extends BaseHandler {
     UserDAO userDao;

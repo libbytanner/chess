@@ -4,7 +4,7 @@ import dataaccess.*;
 import model.RegisterRequest;
 import model.UserData;
 import org.junit.jupiter.api.*;
-import server.UserService;
+import server.service.UserService;
 
 import java.util.ArrayList;
 
