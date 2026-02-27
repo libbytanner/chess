@@ -19,7 +19,7 @@ public class GameService extends Service{
         if (!verifyAuth(request.authToken())) {
             throw new UnauthorizedException("authToken is invalid");
         }
-        int size = gameDao.listGames().size();
+        int size = gameDao.getListGames().size();
         GameData game = new GameData(size, null, null, request.gameName(),new ChessGame());
         gameDao.addGame(game);
         return new CreateGameResult(game.gameID());

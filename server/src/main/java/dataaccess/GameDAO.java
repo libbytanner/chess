@@ -5,7 +5,7 @@ import model.GameData;
 import java.util.List;
 
 public interface GameDAO {
-    List<GameData> listGames();
+    List<GameData> getListGames();
     void addGame(GameData game);
     void joinGame();
     void clear();

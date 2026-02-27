@@ -7,7 +7,7 @@ import java.util.List;
 
 public class GameMemoryDAO implements GameDAO {
     ArrayList<GameData> games = new ArrayList<>();
-    public List<GameData> listGames() {
+    public List<GameData> getListGames() {
         return games;
     }
 
@@ -20,6 +20,6 @@ public class GameMemoryDAO implements GameDAO {
     }
 
     public void clear() {
-
+        games = new ArrayList<>();
     }
 }
