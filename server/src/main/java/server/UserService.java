@@ -7,17 +7,19 @@ import model.RegisterResult;
 import model.UserData;
 
 public class UserService {
-    UserMemoryDAO userDao = new UserMemoryDAO();
-    AuthMemoryDAO authDao = new AuthMemoryDAO();
+    UserDAO userDao;
+    AuthDAO authDao;
 
     public UserService(UserDAO userDao, AuthDAO authDao) {
+        this.userDao = userDao;
+        this.authDao = authDao;
     }
 
-    public UserMemoryDAO getUserDao() {
+    public UserDAO getUserDao() {
         return userDao;
     }
 
-    public AuthMemoryDAO getAuthDao() {
+    public AuthDAO getAuthDao() {
         return authDao;
     }
 
