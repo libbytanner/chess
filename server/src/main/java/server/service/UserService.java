@@ -1,4 +1,4 @@
-package server;
+package server.service;
 
 import dataaccess.*;
 import model.AuthData;
