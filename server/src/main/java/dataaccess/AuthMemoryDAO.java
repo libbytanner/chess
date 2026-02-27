@@ -19,4 +19,8 @@ public class AuthMemoryDAO implements AuthDAO{
     public String generateToken() {
         return UUID.randomUUID().toString();
     }
+
+    public void clear() {
+        authTokens = new ArrayList<>();
+    }
 }

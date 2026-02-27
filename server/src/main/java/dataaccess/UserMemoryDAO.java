@@ -24,4 +24,8 @@ public class UserMemoryDAO implements UserDAO {
     public void createUser(UserData user) {
         users.add(user);
     }
+
+    public void clear() {
+        users = new ArrayList<>();
+    }
 }

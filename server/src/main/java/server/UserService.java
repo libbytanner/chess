@@ -1,9 +1,6 @@
 package server;
 
-import dataaccess.AuthMemoryDAO;
-import dataaccess.DataAccessException;
-import dataaccess.ExistingUserException;
-import dataaccess.UserMemoryDAO;
+import dataaccess.*;
 import model.AuthData;
 import model.RegisterRequest;
 import model.RegisterResult;
@@ -12,6 +9,9 @@ import model.UserData;
 public class UserService {
     UserMemoryDAO userDao = new UserMemoryDAO();
     AuthMemoryDAO authDao = new AuthMemoryDAO();
+
+    public UserService(UserDAO userDao, AuthDAO authDao) {
+    }
 
     public UserMemoryDAO getUserDao() {
         return userDao;

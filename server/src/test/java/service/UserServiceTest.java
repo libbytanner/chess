@@ -1,6 +1,6 @@
 package service;
 
-import dataaccess.ExistingUserException;
+import dataaccess.*;
 import model.RegisterRequest;
 import model.UserData;
 import org.junit.jupiter.api.*;
@@ -12,9 +12,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceTest {
     UserService service;
+    AuthDAO authDao;
+    UserDAO userDao;
+
     @BeforeEach
     public void setUp() {
-        service = new UserService();
+        authDao = new AuthMemoryDAO();
+        userDao = new UserMemoryDAO();
+        service = new UserService(userDao, authDao);
     }
 
     @Test
@@ -24,6 +29,7 @@ public class UserServiceTest {
         ArrayList<UserData> obsUsers = service.getUserDao().getUsers();
         assertEquals(1, obsUsers.size());
         assertEquals("username", obsUsers.getFirst().username());
+        assertEquals(1, service.getAuthDao().getAuthTokens().size());
     }
 
     @Test
@@ -39,6 +45,7 @@ public class UserServiceTest {
         assertThrows(ExistingUserException.class, () -> service.register(secondRequest));
         ArrayList<UserData> obsUsers = service.getUserDao().getUsers();
         assertEquals(1, obsUsers.size());
+        assertEquals(1, service.getAuthDao().getAuthTokens().size());
 
     }
 
