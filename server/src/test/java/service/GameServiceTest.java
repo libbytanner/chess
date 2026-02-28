@@ -2,6 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.*;
+import io.javalin.http.UnauthorizedResponse;
 import model.AuthData;
 import model.CreateGameRequest;
 import model.GameData;
@@ -48,7 +49,7 @@ public class GameServiceTest {
         authDao.addAuth(authData);
         CreateGameRequest request = new CreateGameRequest("authToken", "gameName");
         GameService service = new GameService(userDao, authDao, gameDao);
-        assertThrows(UnauthorizedException.class, () -> service.createGame(request));
+        assertThrows(UnauthorizedResponse.class, () -> service.createGame(request));
         assertEquals(0, gameDao.getListGames().size());
     }
 }
