@@ -25,13 +25,13 @@ public class CreateGameHandler extends BaseHandler {
             context.status(400);
             context.result("{ \"message\" : \"Error: bad request\" }");
         } else {
-        try {
-            var response = service.createGame(request);
-            context.json(toJson(response));
-        } catch (UnauthorizedResponse exception) {
-            context.status(401);
-            context.result("{ \"message: \" : \"Error: unauthorized\" }");
-        }
+            try {
+                var response = service.createGame(request);
+                context.json(toJson(response));
+            } catch (UnauthorizedResponse exception) {
+                context.status(401);
+                context.result("{ \"message \" : \"Error: unauthorized\" }");
+            }
         }
     }
 }

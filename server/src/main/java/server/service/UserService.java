@@ -1,10 +1,8 @@
 package server.service;
 
 import dataaccess.*;
-import model.AuthData;
-import model.RegisterRequest;
-import model.RegisterResult;
-import model.UserData;
+import io.javalin.http.UnauthorizedResponse;
+import model.*;
 
 public class UserService {
     UserDAO userDao;
@@ -33,5 +31,16 @@ public class UserService {
         AuthData auth = new AuthData(token, request.username());
         authDao.addAuth(auth);
         return new RegisterResult(request.username(), token);
+    }
+
+    public LoginResult login(LoginRequest request) throws UnauthorizedResponse{
+        UserData user = userDao.getUser(request.username());
+        if (user == null || !user.password().equals(request.password())) {
+            throw new UnauthorizedResponse();
+        }
+        String token = authDao.generateToken();
+        AuthData auth = new AuthData(token, request.username());
+        authDao.addAuth(auth);
+        return new LoginResult(request.username(), token);
     }
 }

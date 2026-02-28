@@ -6,6 +6,7 @@ import dataaccess.UserMemoryDAO;
 import io.javalin.*;
 import server.handlers.ClearHandler;
 import server.handlers.CreateGameHandler;
+import server.handlers.LoginHandler;
 import server.handlers.RegisterHandler;
 
 
@@ -21,11 +22,13 @@ public class Server {
         RegisterHandler registerHandler = new RegisterHandler(userDao, authDao);
         ClearHandler clearHandler = new ClearHandler(userDao, authDao, gameDao);
         CreateGameHandler createGameHandler = new CreateGameHandler(userDao, authDao, gameDao);
+        LoginHandler loginHandler = new LoginHandler(userDao, authDao);
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
         // Register your endpoints and exception handlers here.
             .post("/user", registerHandler::handleRequest)
             .post("/game", createGameHandler::handleRequest)
+            .post("/session", loginHandler::handleRequest)
             .delete("/db", clearHandler::handleRequest);
     }
 
