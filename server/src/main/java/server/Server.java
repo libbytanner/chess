@@ -8,6 +8,7 @@ import server.handlers.ClearHandler;
 import server.handlers.CreateGameHandler;
 import server.handlers.LoginHandler;
 import server.handlers.RegisterHandler;
+import server.handlers.LogoutHandler;
 
 
 public class Server {
@@ -23,12 +24,14 @@ public class Server {
         ClearHandler clearHandler = new ClearHandler(userDao, authDao, gameDao);
         CreateGameHandler createGameHandler = new CreateGameHandler(userDao, authDao, gameDao);
         LoginHandler loginHandler = new LoginHandler(userDao, authDao);
+        LogoutHandler logoutHandler = new LogoutHandler(authDao);
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
         // Register your endpoints and exception handlers here.
             .post("/user", registerHandler::handleRequest)
             .post("/game", createGameHandler::handleRequest)
             .post("/session", loginHandler::handleRequest)
+            .delete("/session", logoutHandler::handleRequest)
             .delete("/db", clearHandler::handleRequest);
     }
 

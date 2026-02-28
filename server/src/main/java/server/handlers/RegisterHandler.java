@@ -8,14 +8,11 @@ import model.RegisterRequest;
 import server.service.UserService;
 
 public class RegisterHandler extends BaseHandler {
-    UserDAO userDao;
-    AuthDAO authDao;
     UserService service;
 
 
     public RegisterHandler(UserDAO userDao, AuthDAO authDao) {
-        this.userDao = userDao;
-        this.authDao = authDao;
+        super(userDao, authDao, null);
         this.service = new UserService(userDao, authDao);
     }
 

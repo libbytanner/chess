@@ -30,6 +30,10 @@ public class AuthMemoryDAO implements AuthDAO{
         return null;
     }
 
+    public void deleteAuth(AuthData auth) {
+        authTokens.remove(auth);
+    }
+
     public void clear() {
         authTokens = new ArrayList<>();
     }

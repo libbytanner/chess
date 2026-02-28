@@ -9,7 +9,7 @@ public interface AuthDAO {
     void addAuth(AuthData auth);
     String generateToken();
     AuthData findAuth(String token);
+    void deleteAuth(AuthData auth);
 
     void clear();
-
 }

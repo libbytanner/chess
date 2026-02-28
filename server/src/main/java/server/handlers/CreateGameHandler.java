@@ -8,13 +8,9 @@ import server.service.GameService;
 
 public class CreateGameHandler extends BaseHandler {
     GameService service;
-    AuthDAO authDao;
-    GameDAO gameDao;
-    UserDAO userDao;
+
     public CreateGameHandler(UserDAO userDao, AuthDAO authDao, GameDAO gameDao) {
-        this.userDao = userDao;
-        this.authDao = authDao;
-        this.gameDao = gameDao;
+        super(userDao, authDao, gameDao);
         service = new GameService(userDao, authDao, gameDao);
     }
 
@@ -30,7 +26,7 @@ public class CreateGameHandler extends BaseHandler {
                 context.json(toJson(response));
             } catch (UnauthorizedResponse exception) {
                 context.status(401);
-                context.result("{ \"message \" : \"Error: unauthorized\" }");
+                context.result("{ \"message\" : \"Error: unauthorized\" }");
             }
         }
     }
