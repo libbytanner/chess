@@ -2,6 +2,7 @@ package server.handlers;
 
 import dataaccess.*;
 import io.javalin.http.Context;
+import io.javalin.http.UnauthorizedResponse;
 import model.CreateGameRequest;
 import server.service.GameService;
 
@@ -20,12 +21,17 @@ public class CreateGameHandler extends BaseHandler {
     public void handleRequest(Context context) {
         CreateGameRequest request = (CreateGameRequest) fromJson(context, CreateGameRequest.class);
         request = new CreateGameRequest(context.header("authorization"), request.gameName());
+        if (request.gameName() == null) {
+            context.status(400);
+            context.result("{ \"message\" : \"Error: bad request\" }");
+        } else {
         try {
             var response = service.createGame(request);
             context.json(toJson(response));
-        } catch (UnauthorizedException exception) {
+        } catch (UnauthorizedResponse exception) {
             context.status(401);
             context.result("{ \"message: \" : \"Error: unauthorized\" }");
+        }
         }
     }
 }
