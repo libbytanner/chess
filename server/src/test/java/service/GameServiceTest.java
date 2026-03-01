@@ -32,7 +32,7 @@ public class GameServiceTest {
         authDao.addAuth(authData);
         CreateGameRequest request = new CreateGameRequest("authToken", "gameName");
         GameData expectedGame =
-                new GameData(0, null, null, "gameName", new ChessGame());
+                new GameData(1, null, null, "gameName", new ChessGame());
         ArrayList<GameData> gameList = new ArrayList<>();
         gameList.add(expectedGame);
         GameService service = new GameService(userDao, authDao, gameDao);
@@ -92,13 +92,13 @@ public class GameServiceTest {
     public void joinGameTestPositive() {
         AuthData authData = new AuthData("authToken", "username");
         authDao.addAuth(authData);
-        JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.WHITE, 0);
+        JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.WHITE, 1);
         GameData game1 =
-                new GameData(0, null, null, "game1", new ChessGame());
+                new GameData(1, null, null, "game1", new ChessGame());
         GameData game2 =
-                new GameData(1, null, null, "game2", new ChessGame());
+                new GameData(2, null, null, "game2", new ChessGame());
         GameData updatedGame =
-                new GameData(0, "username", null, "game1", new ChessGame());
+                new GameData(1, "username", null, "game1", new ChessGame());
 
         gameDao.addGame(game1);
         gameDao.addGame(game2);
