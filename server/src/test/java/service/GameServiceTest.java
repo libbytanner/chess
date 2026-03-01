@@ -97,13 +97,13 @@ public class GameServiceTest {
                 new GameData(0, null, null, "game1", new ChessGame());
         GameData game2 =
                 new GameData(1, null, null, "game2", new ChessGame());
-        GameData updated_game =
+        GameData updatedGame =
                 new GameData(0, "username", null, "game1", new ChessGame());
 
         gameDao.addGame(game1);
         gameDao.addGame(game2);
         ArrayList<GameData> gameList = new ArrayList<>();
-        gameList.add(updated_game);
+        gameList.add(updatedGame);
         gameList.add(game2);
         GameService service = new GameService(userDao, authDao, gameDao);
         assertDoesNotThrow(() -> service.joinGame(request));
