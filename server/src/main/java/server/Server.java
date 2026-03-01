@@ -4,11 +4,8 @@ import dataaccess.AuthMemoryDAO;
 import dataaccess.GameMemoryDAO;
 import dataaccess.UserMemoryDAO;
 import io.javalin.*;
-import server.handlers.ClearHandler;
-import server.handlers.CreateGameHandler;
-import server.handlers.LoginHandler;
-import server.handlers.RegisterHandler;
-import server.handlers.LogoutHandler;
+import io.javalin.http.Context;
+import server.handlers.*;
 
 
 public class Server {
@@ -25,7 +22,7 @@ public class Server {
         CreateGameHandler createGameHandler = new CreateGameHandler(userDao, authDao, gameDao);
         LoginHandler loginHandler = new LoginHandler(userDao, authDao);
         LogoutHandler logoutHandler = new LogoutHandler(authDao);
-        ListGameHandler listGameHandler = new ListGameHandler(authDao, gameDao);
+        ListGamesHandler listGamesHandler = new ListGamesHandler(authDao, gameDao);
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
         // Register your endpoints and exception handlers here.
@@ -33,8 +30,13 @@ public class Server {
             .post("/game", createGameHandler::handleRequest)
             .post("/session", loginHandler::handleRequest)
             .delete("/session", logoutHandler::handleRequest)
-                .get("/game", listGamesHandler::handleRequest)
+            .get("/game", listGamesHandler::handleRequest)
+            .error(401, this::unauthorized)
             .delete("/db", clearHandler::handleRequest);
+    }
+
+    public void unauthorized(Context context) {
+        context.result("{ \"message\" : \"Error: unauthorized\" }");
     }
 
     public int run(int desiredPort) {

@@ -25,7 +25,6 @@ public class LoginHandler extends BaseHandler {
                 context.json(toJson(response));
             } catch (UnauthorizedResponse exception) {
                 context.status(401);
-                context.result("{ \"message\" : \"Error: unauthorized\" }");
             }
         }
 

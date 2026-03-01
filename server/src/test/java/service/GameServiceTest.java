@@ -6,6 +6,7 @@ import io.javalin.http.UnauthorizedResponse;
 import model.AuthData;
 import model.CreateGameRequest;
 import model.GameData;
+import model.ListGamesRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,5 +52,41 @@ public class GameServiceTest {
         GameService service = new GameService(userDao, authDao, gameDao);
         assertThrows(UnauthorizedResponse.class, () -> service.createGame(request));
         assertEquals(0, gameDao.getListGames().size());
+    }
+
+    @Test
+    @DisplayName("Game/ListGames - Positive")
+    public void listGamesTestPositive() {
+        AuthData authData = new AuthData("authToken", "username");
+        authDao.addAuth(authData);
+        ListGamesRequest request = new ListGamesRequest("authToken");
+        GameData game1 =
+                new GameData(0, null, null, "game1", new ChessGame());
+        GameData game2 =
+                new GameData(1, null, null, "game2", new ChessGame());
+        gameDao.addGame(game1);
+        gameDao.addGame(game2);
+        ArrayList<GameData> gameList = new ArrayList<>();
+        gameList.add(game1);
+        gameList.add(game2);
+        GameService service = new GameService(userDao, authDao, gameDao);
+        assertDoesNotThrow(() -> service.listGames(request));
+        assertEquals(gameList, gameDao.getListGames());
+    }
+
+    @Test
+    @DisplayName("Game/ListGames - Negative")
+    public void listGamesTestNegative() {
+        AuthData authData = new AuthData("authToken", "username");
+        authDao.addAuth(authData);
+        ListGamesRequest request = new ListGamesRequest("differentAuth");
+        GameData game1 =
+                new GameData(0, null, null, "game1", new ChessGame());
+        GameData game2 =
+                new GameData(1, null, null, "game2", new ChessGame());
+        gameDao.addGame(game1);
+        gameDao.addGame(game2);
+        GameService service = new GameService(userDao, authDao, gameDao);
+        assertThrows(UnauthorizedResponse.class, () -> service.listGames(request));
     }
 }
