@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameMemoryDAO implements GameDAO {
-    ArrayList<GameData> games = new ArrayList<>();
+    List<GameData> games = new ArrayList<>();
     public List<GameData> getListGames() {
+        if (games.isEmpty()) {
+            return List.of();
+        }
         return games;
     }
 
