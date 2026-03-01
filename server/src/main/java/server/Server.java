@@ -23,6 +23,8 @@ public class Server {
         LoginHandler loginHandler = new LoginHandler(userDao, authDao);
         LogoutHandler logoutHandler = new LogoutHandler(authDao);
         ListGamesHandler listGamesHandler = new ListGamesHandler(authDao, gameDao);
+        JoinGameHandler joinGameHandler = new JoinGameHandler(userDao, authDao, gameDao);
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
         // Register your endpoints and exception handlers here.
@@ -31,12 +33,18 @@ public class Server {
             .post("/session", loginHandler::handleRequest)
             .delete("/session", logoutHandler::handleRequest)
             .get("/game", listGamesHandler::handleRequest)
+            .put("/game", joinGameHandler::handleRequest)
+            .error(400, this::dataAccess)
             .error(401, this::unauthorized)
             .delete("/db", clearHandler::handleRequest);
     }
 
     public void unauthorized(Context context) {
         context.result("{ \"message\" : \"Error: unauthorized\" }");
+    }
+
+    public void dataAccess(Context context) {
+        context.result("{ \"message\" : \"Error: bad request\" }");
     }
 
     public int run(int desiredPort) {
