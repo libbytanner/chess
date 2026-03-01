@@ -19,7 +19,6 @@ public class CreateGameHandler extends BaseHandler {
         request = new CreateGameRequest(context.header("authorization"), request.gameName());
         if (request.gameName() == null) {
             context.status(400);
-            context.result("{ \"message\" : \"Error: bad request\" }");
         } else {
             try {
                 var response = service.createGame(request);

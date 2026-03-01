@@ -1,13 +1,14 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.GameData;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public interface GameDAO {
     List<GameData> getListGames();
     void addGame(GameData game);
-    void joinGame();
+    GameData getGame(int gameID);
     void clear();
+    void updateGame(GameData game, ChessGame.TeamColor teamColor, String s);
 }

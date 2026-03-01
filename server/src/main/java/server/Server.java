@@ -36,6 +36,7 @@ public class Server {
             .put("/game", joinGameHandler::handleRequest)
             .error(400, this::dataAccess)
             .error(401, this::unauthorized)
+                .error(403, this::dataAccess)
             .delete("/db", clearHandler::handleRequest);
     }
 

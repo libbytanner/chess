@@ -5,6 +5,7 @@ import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import model.JoinGameRequest;
 import server.service.GameService;
@@ -23,13 +24,15 @@ public class JoinGameHandler extends BaseHandler {
         if (request.playerColor() == null) {
             context.status(400);
         } else {
-        try {
-            service.joinGame(request);
-        } catch (UnauthorizedResponse exception) {
-            context.status(401);
-        } catch (DataAccessException exception) {
-            context.status(400);
-        }
+            try {
+                service.joinGame(request);
+            } catch (UnauthorizedResponse exception) {
+                context.status(401);
+            } catch (DataAccessException exception) {
+                context.status(400);
+            } catch (ForbiddenResponse exception) {
+                context.status(403);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import model.*;
 
@@ -39,16 +40,16 @@ public class GameService extends Service{
         GameData game = gameDao.getGame(request.gameID());
         if (game == null) {
             throw new DataAccessException("Game does not exist");
-        } else if (request.playerColor().equals("WHITE")) {
+        } else if (request.playerColor().equals(ChessGame.TeamColor.WHITE)) {
             if (game.whiteUsername() != null) {
-                throw new DataAccessException("Color Taken");
+                throw new ForbiddenResponse("Color Taken");
             }
-            gameDao.updateGame(game, ChessGame.TeamColor.WHITE, username);
-        } else if (request.playerColor().equals("BLACK")) {
+            gameDao.updateGame(game, request.playerColor(), username);
+        } else if (request.playerColor().equals(ChessGame.TeamColor.BLACK)) {
             if (game.blackUsername() != null) {
-                throw new DataAccessException("Color Taken");
+                throw new ForbiddenResponse("Color Taken");
             }
-            gameDao.updateGame(game, ChessGame.TeamColor.BLACK, username);
+            gameDao.updateGame(game, request.playerColor(), username);
         }
     }
 }
