@@ -41,7 +41,7 @@ public class GameMemoryDAO implements GameDAO {
             black = username;
         }
         games.remove(game);
-        GameData updated_game = new GameData(game.gameID(), white, black, game.gameName(), game.game());
-        games.add(updated_game.gameID() - 1, updated_game);
+        GameData updatedGame = new GameData(game.gameID(), white, black, game.gameName(), game.game());
+        games.add(updatedGame.gameID() - 1, updatedGame);
     }
 }
