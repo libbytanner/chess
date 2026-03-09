@@ -1,11 +1,11 @@
 package server;
 
-import dataaccess.AuthMemoryDAO;
-import dataaccess.GameMemoryDAO;
-import dataaccess.UserMemoryDAO;
+import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import server.handlers.*;
+
+import java.sql.Connection;
 
 
 public class Server {
@@ -13,9 +13,9 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
-        UserMemoryDAO userDao = new UserMemoryDAO();
-        AuthMemoryDAO authDao = new AuthMemoryDAO();
-        GameMemoryDAO gameDao = new GameMemoryDAO();
+        UserDAO userDao = new UserDatabaseDAO();
+        AuthDAO authDao = new AuthMemoryDAO();
+        GameDAO gameDao = new GameMemoryDAO();
 
         RegisterHandler registerHandler = new RegisterHandler(userDao, authDao);
         ClearHandler clearHandler = new ClearHandler(userDao, authDao, gameDao);
