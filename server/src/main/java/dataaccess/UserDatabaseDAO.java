@@ -5,6 +5,7 @@ import model.UserData;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class UserDatabaseDAO implements UserDAO {
 
@@ -19,15 +20,22 @@ public class UserDatabaseDAO implements UserDAO {
 
     @Override
     public ArrayList<UserData> getUsers() {
+        ArrayList<UserData> users = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT username, password, email FROM users)")) {
-
+                var rs = preparedStatement.executeQuery();
+                while (rs.next()) {
+                    UserData user = new UserData(
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("email"));
+                    users.add(user);
+                }
+                return users;
             }
         } catch (SQLException | DataAccessException e) {
             throw new RuntimeException(e);
         }
-
-        return null;
     }
 
     @Override
