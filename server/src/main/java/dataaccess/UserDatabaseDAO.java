@@ -40,6 +40,20 @@ public class UserDatabaseDAO implements UserDAO {
 
     @Override
     public UserData getUser(String username) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT username, password, email FROM users WHERE username=?")) {
+                preparedStatement.setString(1, username);
+                var rs = preparedStatement.executeQuery();
+                if (rs.next()) {
+                    return new UserData(
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("email"));
+                }
+            }
+        } catch (SQLException | DataAccessException e) {
+            return null;
+        }
         return null;
     }
 
@@ -50,7 +64,7 @@ public class UserDatabaseDAO implements UserDAO {
                 preparedStatement.setString(1, user.username());
                 preparedStatement.setString(2, user.password());
                 preparedStatement.setString(3, user.email());
-
+                preparedStatement.executeUpdate();
             }
         } catch (SQLException | DataAccessException e) {
             throw new RuntimeException(e);
