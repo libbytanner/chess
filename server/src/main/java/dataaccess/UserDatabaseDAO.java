@@ -22,7 +22,7 @@ public class UserDatabaseDAO implements UserDAO {
     public ArrayList<UserData> getUsers() {
         ArrayList<UserData> users = new ArrayList<>();
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT username, password, email FROM users)")) {
+            try (var preparedStatement = conn.prepareStatement("SELECT * FROM users")) {
                 var rs = preparedStatement.executeQuery();
                 while (rs.next()) {
                     UserData user = new UserData(
@@ -73,6 +73,15 @@ public class UserDatabaseDAO implements UserDAO {
 
     @Override
     public void clear() {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM users")) {
+                preparedStatement.executeUpdate();
+
+            }
+
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
