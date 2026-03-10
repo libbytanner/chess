@@ -102,7 +102,6 @@ public class UserDatabaseDAO implements UserDAO {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();   // <-- this shows exactly why it failed
             throw new DataAccessException("could not execute command");
         }
     }
