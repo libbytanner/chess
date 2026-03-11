@@ -14,7 +14,7 @@ public class Server {
 
     public Server() {
         UserDAO userDao = new UserDatabaseDAO();
-        AuthDAO authDao = new AuthMemoryDAO();
+        AuthDAO authDao = new AuthDatabaseDAO();
         GameDAO gameDao = new GameMemoryDAO();
 
         RegisterHandler registerHandler = new RegisterHandler(userDao, authDao);

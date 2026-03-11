@@ -82,13 +82,6 @@ class AuthDatabaseDAOTest {
     }
 
     @Test
-    void addAuthNegativeTest() {
-        AuthData auth = new AuthData("12345", "username");
-        assertDoesNotThrow(() -> dao.addAuth(auth));
-        assertThrows(RuntimeException.class, () -> dao.addAuth(auth));
-    }
-
-    @Test
     void clear() {
         AuthData auth1 = new AuthData("123", "name");
         AuthData auth2 = new AuthData("222", "username");

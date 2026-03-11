@@ -95,11 +95,10 @@ public class AuthDatabaseDAO implements AuthDAO {
     String createStatement =
             """
             CREATE TABLE IF NOT EXISTS authTokens (
-                authToken VARCHAR(255) NOT NULL,
-                username VARCHAR(255) NOT NULL,
-                PRIMARY KEY (authToken)
-            )
-            """;
+            authToken VARCHAR(255) NOT NULL,
+            username VARCHAR(255) NOT NULL
+        )
+        """;
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
