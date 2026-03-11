@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
+import model.UserData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,18 +59,47 @@ class AuthDatabaseDAOTest {
     }
 
     @Test
+    void findAuthPositiveTest() {
+        AuthData exp = new AuthData("12345", "username");
+        dao.addAuth(exp);
+        assertEquals(exp, dao.findAuth(exp.authToken()));
+    }
+
+    @Test
+    void findAuthNegativeTest() {
+        AuthData exp = new AuthData("12345", "username");
+        dao.addAuth(exp);
+        assertNull(dao.findAuth("anotherToken"));
+    }
+
+    @Test
+    void deleteAuthPositiveTest() {
+        AuthData auth = new AuthData("12345", "username");
+        dao.addAuth(auth);
+        assertEquals(auth, dao.findAuth(auth.authToken()));
+        dao.deleteAuth(auth);
+        assertNull(dao.findAuth(auth.authToken()));
+    }
+
+    @Test
     void addAuthNegativeTest() {
-    }
-
-    @Test
-    void findAuth() {
-    }
-
-    @Test
-    void deleteAuth() {
+        AuthData auth = new AuthData("12345", "username");
+        assertDoesNotThrow(() -> dao.addAuth(auth));
+        assertThrows(RuntimeException.class, () -> dao.addAuth(auth));
     }
 
     @Test
     void clear() {
+        AuthData auth1 = new AuthData("123", "name");
+        AuthData auth2 = new AuthData("222", "username");
+        AuthData auth3 = new AuthData("322222", "another one");
+
+        dao.addAuth(auth1);
+        dao.addAuth(auth2);
+        dao.addAuth(auth3);
+
+        ArrayList<AuthData> exp = new ArrayList<>();
+        dao.clear();
+        assertEquals(exp, dao.getAuthTokens());
     }
 }

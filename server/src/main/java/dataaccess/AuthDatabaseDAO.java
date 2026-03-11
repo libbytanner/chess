@@ -71,7 +71,14 @@ public class AuthDatabaseDAO implements AuthDAO {
 
     @Override
     public void deleteAuth(AuthData auth) {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authTokens WHERE authToken=?")) {
+                preparedStatement.setString(1, auth.authToken());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -79,9 +86,7 @@ public class AuthDatabaseDAO implements AuthDAO {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM authTokens")) {
                 preparedStatement.executeUpdate();
-
             }
-
         } catch (SQLException | DataAccessException e) {
             throw new RuntimeException(e);
         }
@@ -92,7 +97,7 @@ public class AuthDatabaseDAO implements AuthDAO {
             CREATE TABLE IF NOT EXISTS authTokens (
                 authToken VARCHAR(255) NOT NULL,
                 username VARCHAR(255) NOT NULL,
-                PRIMARY KEY (username)
+                PRIMARY KEY (authToken)
             )
             """;
 
