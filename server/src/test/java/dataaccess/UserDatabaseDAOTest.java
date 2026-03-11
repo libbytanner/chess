@@ -3,14 +3,12 @@ package dataaccess;
 import model.UserData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,7 +38,7 @@ public class UserDatabaseDAOTest {
     }
 
     @Test
-    public void getUsersPositiveTest() throws DataAccessException, SQLException {
+    public void getUsersPositiveTest() {
         UserData user1 = new UserData("1", "password", "email");
         UserData user2 = new UserData("2", "password", "email");
         UserData user3 = new UserData("3", "another one", "email");
@@ -62,7 +60,6 @@ public class UserDatabaseDAOTest {
     public void getUsersNegativeTest() {
 
         ArrayList<UserData> exp = new ArrayList<>();
-
         assertEquals(exp, dao.getUsers());
 
     }
@@ -82,13 +79,6 @@ public class UserDatabaseDAOTest {
 
     @Test
     public void addUserPositiveTest() {
-        UserData user = new UserData("me", "pw", "email");
-        assertDoesNotThrow(() -> dao.addUser(user));
-        assertEquals(user, dao.getUser(user.username()));
-    }
-
-    @Test
-    public void addUserNegativeTest() {
         UserData user = new UserData("me", "pw", "email");
         assertDoesNotThrow(() -> dao.addUser(user));
         assertEquals(user, dao.getUser(user.username()));

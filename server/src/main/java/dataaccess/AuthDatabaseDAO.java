@@ -20,23 +20,40 @@ public class AuthDatabaseDAO implements AuthDAO {
 
     @Override
     public ArrayList<AuthData> getAuthTokens() {
-        return null;
-    }
+        ArrayList<AuthData> authTokens = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT * FROM authTokens")) {
+                var rs = preparedStatement.executeQuery();
+                while (rs.next()) {
+                    AuthData auth = new AuthData(
+                            rs.getString("authToken"),
+                            rs.getString("username"));
+                    authTokens.add(auth);
+                }
+                return authTokens;
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }    }
 
     @Override
     public void addAuth(AuthData auth) {
-
-    }
-
-    @Override
-    public String generateToken() {
-        return "";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(
+                    "INSERT INTO authTokens (authToken, username) VALUES(?, ?)")) {
+                preparedStatement.setString(1, auth.authToken());
+                preparedStatement.setString(2, auth.username());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public AuthData findAuth(String token) {
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT authToken, username FROM authTokens WHERE token=?")) {
+            try (var preparedStatement = conn.prepareStatement("SELECT authToken, username FROM authTokens WHERE authToken=?")) {
                 preparedStatement.setString(1, token);
                 var rs = preparedStatement.executeQuery();
                 if (rs.next()) {
@@ -59,7 +76,15 @@ public class AuthDatabaseDAO implements AuthDAO {
 
     @Override
     public void clear() {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authTokens")) {
+                preparedStatement.executeUpdate();
 
+            }
+
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     String createStatement =

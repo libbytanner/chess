@@ -5,7 +5,6 @@ import model.UserData;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class UserDatabaseDAO implements UserDAO {
 
@@ -82,7 +81,6 @@ public class UserDatabaseDAO implements UserDAO {
         } catch (SQLException | DataAccessException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     String createStatement =
