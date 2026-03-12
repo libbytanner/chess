@@ -65,11 +65,6 @@ class GameDatabaseDAOTest {
     }
 
     @Test
-    void addGameNegativeTest() {
-
-    }
-
-    @Test
     void getGamePositiveTest() {
         GameData game = new GameData(
                 1, "username", "black", "whitevblack", new ChessGame());
@@ -116,7 +111,13 @@ class GameDatabaseDAOTest {
     }
 
     @Test
-    void updateGameNegativeTest() {
-
+    void updateGameNegativeTest() throws SQLException {
+        GameData game = new GameData(
+                1, null, "black", "whitevblack", new ChessGame());
+        GameData newGame = new GameData(
+                2, "hello", "black", "whitevblack", game.game());
+        dao.addGame(game);
+        dao.updateGame(newGame, ChessGame.TeamColor.WHITE, "hello", game.game());
+        assertNull(dao.getGame(2));
     }
 }

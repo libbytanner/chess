@@ -10,6 +10,8 @@ import io.javalin.http.UnauthorizedResponse;
 import model.JoinGameRequest;
 import server.service.GameService;
 
+import java.sql.SQLException;
+
 public class JoinGameHandler extends BaseHandler {
     GameService service;
 
@@ -32,6 +34,8 @@ public class JoinGameHandler extends BaseHandler {
                 context.status(400);
             } catch (ForbiddenResponse exception) {
                 context.status(403);
+            } catch (SQLException exception) {
+                context.status(500);
             }
         }
     }

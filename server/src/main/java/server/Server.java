@@ -15,7 +15,7 @@ public class Server {
     public Server() {
         UserDAO userDao = new UserDatabaseDAO();
         AuthDAO authDao = new AuthDatabaseDAO();
-        GameDAO gameDao = new GameMemoryDAO();
+        GameDAO gameDao = new GameDatabaseDAO();
 
         RegisterHandler registerHandler = new RegisterHandler(userDao, authDao);
         ClearHandler clearHandler = new ClearHandler(userDao, authDao, gameDao);
@@ -37,6 +37,8 @@ public class Server {
             .error(400, this::dataAccess)
             .error(401, this::unauthorized)
                 .error(403, this::dataAccess)
+                .exception(Exception.class, this::exceptionHandler)
+                .error(500, this::serverError)
             .delete("/db", clearHandler::handleRequest);
     }
 
@@ -46,6 +48,17 @@ public class Server {
 
     public void dataAccess(Context context) {
         context.result("{ \"message\" : \"Error: bad request\" }");
+    }
+
+    public void serverError(Context context) {
+        context.status(500);
+        context.result("{ \"message\" : \"Error: server error\" }");
+    }
+
+    public void exceptionHandler(Exception e, Context context) {
+        context.status(500);
+        context.result("{ \"message\" : \"Error: server error\" }");
+
     }
 
     public int run(int desiredPort) {

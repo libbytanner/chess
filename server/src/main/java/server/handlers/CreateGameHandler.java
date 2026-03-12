@@ -6,6 +6,8 @@ import io.javalin.http.UnauthorizedResponse;
 import model.CreateGameRequest;
 import server.service.GameService;
 
+import java.sql.SQLException;
+
 public class CreateGameHandler extends BaseHandler {
     GameService service;
 

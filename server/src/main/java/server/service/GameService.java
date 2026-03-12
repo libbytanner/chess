@@ -9,6 +9,8 @@ import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import model.*;
 
+import java.sql.SQLException;
+
 public class GameService extends Service{
 
     public GameService(UserDAO userDao, AuthDAO authDao, GameDAO gameDao) {
@@ -32,7 +34,7 @@ public class GameService extends Service{
         return new ListGamesResult(gameDao.getListGames());
     }
 
-    public void joinGame(JoinGameRequest request) throws DataAccessException {
+    public void joinGame(JoinGameRequest request) throws DataAccessException, SQLException {
         if (!verifyAuth(request.authToken())) {
             throw new UnauthorizedResponse("authToken is invalid");
         }
@@ -44,12 +46,12 @@ public class GameService extends Service{
             if (game.whiteUsername() != null) {
                 throw new ForbiddenResponse("Color Taken");
             }
-            gameDao.updateGame(game, request.playerColor(), username);
+            gameDao.updateGame(game, request.playerColor(), username, game.game());
         } else if (request.playerColor().equals(ChessGame.TeamColor.BLACK)) {
             if (game.blackUsername() != null) {
                 throw new ForbiddenResponse("Color Taken");
             }
-            gameDao.updateGame(game, request.playerColor(), username);
+            gameDao.updateGame(game, request.playerColor(), username, game.game());
         }
     }
 }
