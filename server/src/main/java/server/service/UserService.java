@@ -3,6 +3,7 @@ package server.service;
 import dataaccess.*;
 import io.javalin.http.UnauthorizedResponse;
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService extends Service {
 
@@ -30,9 +31,17 @@ public class UserService extends Service {
         return new RegisterResult(request.username(), token);
     }
 
+    private boolean verifyUser(String username, String password) {
+        UserData user_hashed = userDao.getUser(username);
+        return BCrypt.checkpw(password, user_hashed.password());
+    }
+
     public LoginResult login(LoginRequest request) throws UnauthorizedResponse {
         UserData user = userDao.getUser(request.username());
-        if (user == null || !user.password().equals(request.password())) {
+        if (user == null) {
+            throw new UnauthorizedResponse();
+        }
+        if (!verifyUser(request.username(), request.password())) {
             throw new UnauthorizedResponse();
         }
         String token = authDao.generateToken();

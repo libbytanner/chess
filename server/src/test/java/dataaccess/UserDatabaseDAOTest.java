@@ -4,6 +4,7 @@ import model.UserData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -43,16 +44,11 @@ public class UserDatabaseDAOTest {
         UserData user2 = new UserData("2", "password", "email");
         UserData user3 = new UserData("3", "another one", "email");
 
-        ArrayList<UserData> exp = new ArrayList<>();
-        exp.add(user1);
-        exp.add(user2);
-        exp.add(user3);
-
         dao.addUser(user1);
         dao.addUser(user2);
         dao.addUser(user3);
 
-        assertEquals(exp, dao.getUsers());
+        assertEquals(3, dao.getUsers().size());
 
     }
 
@@ -69,7 +65,7 @@ public class UserDatabaseDAOTest {
         UserData exp = new UserData("hello", "password", "email");
         dao.addUser(exp);
         UserData user = assertDoesNotThrow(() -> dao.getUser("hello"));
-        assertEquals(exp, user);
+        assertEquals(exp.username(), user.username());
     }
 
     @Test
@@ -81,7 +77,9 @@ public class UserDatabaseDAOTest {
     public void addUserPositiveTest() {
         UserData user = new UserData("me", "pw", "email");
         assertDoesNotThrow(() -> dao.addUser(user));
-        assertEquals(user, dao.getUser(user.username()));
+        UserData fetchedUser = dao.getUser(user.username());
+        BCrypt.checkpw(user.password(), fetchedUser.password());
+        assertEquals(user.username(), fetchedUser.username());
     }
 
     @Test
