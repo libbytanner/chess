@@ -2,12 +2,8 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import io.javalin.http.Context;
 import model.GameData;
-import model.Request;
-import model.UserData;
 
-import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,11 +12,8 @@ import java.util.List;
 public class GameDatabaseDAO implements GameDAO {
 
     public GameDatabaseDAO() {
-        try {
-            configureDatabase();
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
-        }
+        DatabaseDAOInitializer init = new DatabaseDAOInitializer();
+        init.initialize(createStatement);
     }
 
     private String toJson(ChessGame game) {
@@ -153,16 +146,5 @@ public class GameDatabaseDAO implements GameDAO {
                 PRIMARY KEY (gameID)
             )
             """;
-
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(createStatement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException("could not execute command");
-        }
-    }
 
 }

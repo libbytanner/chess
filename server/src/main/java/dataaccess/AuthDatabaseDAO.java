@@ -1,7 +1,6 @@
 package dataaccess;
 
 import model.AuthData;
-import model.UserData;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,11 +9,8 @@ import java.util.ArrayList;
 public class AuthDatabaseDAO implements AuthDAO {
 
     public AuthDatabaseDAO() {
-        try {
-            configureDatabase();
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
-        }
+        DatabaseDAOInitializer init = new DatabaseDAOInitializer();
+        init.initialize(createStatement);
     }
 
 
@@ -99,16 +95,5 @@ public class AuthDatabaseDAO implements AuthDAO {
             username VARCHAR(255) NOT NULL
         )
         """;
-
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(createStatement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException("could not execute command");
-        }
-    }
 
 }

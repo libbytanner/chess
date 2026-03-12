@@ -32,8 +32,8 @@ public class UserService extends Service {
     }
 
     private boolean verifyUser(String username, String password) {
-        UserData user_hashed = userDao.getUser(username);
-        return BCrypt.checkpw(password, user_hashed.password());
+        UserData userHashed = userDao.getUser(username);
+        return BCrypt.checkpw(password, userHashed.password());
     }
 
     public LoginResult login(LoginRequest request) throws UnauthorizedResponse {

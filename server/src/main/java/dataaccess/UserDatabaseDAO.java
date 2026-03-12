@@ -10,11 +10,8 @@ import java.util.ArrayList;
 public class UserDatabaseDAO implements UserDAO {
 
     public UserDatabaseDAO() {
-        try {
-            configureDatabase();
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
-        }
+        DatabaseDAOInitializer init = new DatabaseDAOInitializer();
+        init.initialize(createStatement);
     }
 
 
@@ -41,7 +38,8 @@ public class UserDatabaseDAO implements UserDAO {
     @Override
     public UserData getUser(String username) {
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("SELECT username, password, email FROM users WHERE username=?")) {
+            try (var preparedStatement = conn.prepareStatement(
+                    "SELECT username, password, email FROM users WHERE username=?")) {
                 preparedStatement.setString(1, username);
                 var rs = preparedStatement.executeQuery();
                 if (rs.next()) {
@@ -61,7 +59,8 @@ public class UserDatabaseDAO implements UserDAO {
     public void addUser(UserData user) {
         try (Connection conn = DatabaseManager.getConnection()) {
             var hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES(?, ?, ?)")) {
+            try (var preparedStatement = conn.prepareStatement(
+                    "INSERT INTO users (username, password, email) VALUES(?, ?, ?)")) {
                 preparedStatement.setString(1, user.username());
                 preparedStatement.setString(2, hashedPassword);
                 preparedStatement.setString(3, user.email());
@@ -94,15 +93,4 @@ public class UserDatabaseDAO implements UserDAO {
             PRIMARY KEY (username)
         )
         """;
-
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(createStatement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new DataAccessException("could not execute command");
-        }
-    }
 }
