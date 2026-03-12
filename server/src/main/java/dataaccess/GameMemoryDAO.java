@@ -32,7 +32,7 @@ public class GameMemoryDAO implements GameDAO {
         games = new ArrayList<>();
     }
 
-    public void updateGame(GameData game, ChessGame.TeamColor teamColor, String username) {
+    public void updateGame(GameData game, ChessGame.TeamColor teamColor, String username, ChessGame newGame) {
         String white = game.whiteUsername();
         String black = game.blackUsername();
         if (teamColor.equals(ChessGame.TeamColor.WHITE)) {
@@ -41,7 +41,7 @@ public class GameMemoryDAO implements GameDAO {
             black = username;
         }
         games.remove(game);
-        GameData updatedGame = new GameData(game.gameID(), white, black, game.gameName(), game.game());
+        GameData updatedGame = new GameData(game.gameID(), white, black, game.gameName(), newGame);
         games.add(updatedGame.gameID() - 1, updatedGame);
     }
 }
