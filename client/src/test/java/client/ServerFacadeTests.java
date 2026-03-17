@@ -1,7 +1,11 @@
 package client;
 
+import dataaccess.*;
+import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
@@ -20,7 +24,14 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void setup() {
+        UserDAO userDao = new UserDatabaseDAO();
+        AuthDAO authDao = new AuthDatabaseDAO();
+        GameDAO gameDao = new GameDatabaseDAO();
+        userDao.clear();
+        authDao.clear();
+        gameDao.clear();
 
+        userDao.addUser(new UserData("existingUser", "password", "email"));
     }
 
     @AfterAll
@@ -35,23 +46,32 @@ public class ServerFacadeTests {
 
     @Test
     public void registerTestPositive() {
-
-        Assertions.assertTrue(true);
+        RegisterRequest request = new RegisterRequest("libby", "me", "helloEmail");
+        RegisterResult expectedResult = new RegisterResult("libby", "anAuthToken");
+        RegisterResult result = facade.register(request);
+        assertEquals(expectedResult.username(), result.username());
+        assertNotNull(result.authToken());
     }
 
     @Test
     public void registerTestNegative() {
-        Assertions.assertTrue(true);
+        RegisterRequest request = null;
+        assertThrows(RuntimeException.class, () -> facade.register(request));
     }
 
     @Test
     public void loginTestPositive() {
-        Assertions.assertTrue(true);
+        LoginRequest request = new LoginRequest("existingUser", "password");
+        LoginResult expectedResult = new LoginResult("existingUser", "anAuthToken");
+        LoginResult result = facade.login(request);
+        assertEquals(expectedResult.username(), result.username());
+        assertNotNull(result.authToken());
     }
 
     @Test
     public void loginTestNegative() {
-        Assertions.assertTrue(true);
+        LoginRequest request = null;
+        assertThrows(RuntimeException.class, () -> facade.login(request));
     }
 
     @Test

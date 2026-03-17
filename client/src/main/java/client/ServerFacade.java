@@ -1,8 +1,17 @@
 package client;
 
-import model.UserData;
+import com.google.gson.Gson;
+import model.*;
 
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+
+import java.net.*;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -12,11 +21,58 @@ public class ServerFacade {
         serverUrl = "http://localhost:" + port;
     }
 
-    public UserData register(String username, String password, String email) {return null;}
+    public RegisterResult register(RegisterRequest regRequest) {
+        var request = buildRequest("POST", "/user", regRequest);
+        var response = sendRequest(request);
+        return handleResponse(response, RegisterResult.class);
+    }
 
-    public UserData login(String username, String password) {return null;}
+    public LoginResult login(LoginRequest loginRequest) {
+        var request = buildRequest("POST", "/session", loginRequest);
+        var response = sendRequest(request);
+        return handleResponse(response, LoginResult.class);
+    }
 
     public void logout(String username, String password) {}
 
+    private HttpRequest buildRequest(String method, String path, Request body) {
+        var request = HttpRequest.newBuilder()
+            .uri(URI.create(serverUrl + path))
+            .method(method, makeRequestBody(body));
+        if (body != null) {
+            request.setHeader("Content-Type", "application/json");
+        }
+        return request.build();
+    }
 
+    private BodyPublisher makeRequestBody(Request request) {
+        if (request != null) {
+            return BodyPublishers.ofString(new Gson().toJson(request));
+        } else {
+            return BodyPublishers.noBody();
+        }
+    }
+
+    private HttpResponse<String> sendRequest(HttpRequest request) {
+        try {
+            return client.send(request, BodyHandlers.ofString());
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) {
+        var status = response.statusCode();
+        if (status != 200) {
+            var body = response.body();
+            throw new RuntimeException(body);
+        }
+        return new Gson().fromJson(response.body(), responseClass);
+    }
+
+    private void clear() {
+        var request = buildRequest("DELETE", "/db", null);
+        var response = sendRequest(request);
+        handleResponse(response, RegisterResult.class);
+    }
 }

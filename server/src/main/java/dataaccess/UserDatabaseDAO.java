@@ -76,9 +76,7 @@ public class UserDatabaseDAO implements UserDAO {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM users")) {
                 preparedStatement.executeUpdate();
-
             }
-
         } catch (SQLException | DataAccessException e) {
             throw new RuntimeException(e);
         }
