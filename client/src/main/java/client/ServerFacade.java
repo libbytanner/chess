@@ -12,9 +12,9 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public UserData register(String username, String password, String email) {}
+    public UserData register(String username, String password, String email) {return null;}
 
-    public UserData login(String username, String password) {}
+    public UserData login(String username, String password) {return null;}
 
     public void logout(String username, String password) {}
 
