@@ -12,6 +12,10 @@ public class ServerFacadeTests {
 
     private static Server server;
     static ServerFacade facade;
+    UserDAO userDao = new UserDatabaseDAO();
+    AuthDAO authDao = new AuthDatabaseDAO();
+    GameDAO gameDao = new GameDatabaseDAO();
+
 
 
     @BeforeAll
@@ -24,14 +28,16 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void setup() {
-        UserDAO userDao = new UserDatabaseDAO();
-        AuthDAO authDao = new AuthDatabaseDAO();
-        GameDAO gameDao = new GameDatabaseDAO();
         userDao.clear();
         authDao.clear();
         gameDao.clear();
+    }
 
-        userDao.addUser(new UserData("existingUser", "password", "email"));
+    @AfterEach
+    public void teardown() {
+        userDao.clear();
+        authDao.clear();
+        gameDao.clear();
     }
 
     @AfterAll
@@ -41,7 +47,11 @@ public class ServerFacadeTests {
 
     @Test
     public void clearTest() {
-
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        userDao.addUser(new UserData("another", "password", "email"));
+        userDao.addUser(new UserData("2", "password", "email"));
+        facade.clear();
+        assertDoesNotThrow(() -> userDao.addUser(new UserData("existingUser", "password", "email")));
     }
 
     @Test
@@ -56,11 +66,12 @@ public class ServerFacadeTests {
     @Test
     public void registerTestNegative() {
         RegisterRequest request = null;
-        assertThrows(RuntimeException.class, () -> facade.register(request));
+        assertThrows(ResponseException.class, () -> facade.register(request));
     }
 
     @Test
     public void loginTestPositive() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
         LoginRequest request = new LoginRequest("existingUser", "password");
         LoginResult expectedResult = new LoginResult("existingUser", "anAuthToken");
         LoginResult result = facade.login(request);
@@ -70,18 +81,23 @@ public class ServerFacadeTests {
 
     @Test
     public void loginTestNegative() {
-        LoginRequest request = null;
-        assertThrows(RuntimeException.class, () -> facade.login(request));
+        LoginRequest request = new LoginRequest("NonExistingUser", "password");
+        assertThrows(ResponseException.class, () -> facade.login(request));
     }
 
     @Test
     public void logoutTestPositive() {
-        Assertions.assertTrue(true);
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        authDao.addAuth(new AuthData("authToken", "existingUser"));
+        LogoutRequest request = new LogoutRequest("authToken");
+        assertDoesNotThrow(() -> facade.logout(request));
+        assertEquals(0, authDao.getAuthTokens().size());
     }
 
     @Test
     public void logoutTestNegative() {
-        Assertions.assertTrue(true);
+        LogoutRequest request = new LogoutRequest(null);
+        assertThrows(ResponseException.class, () -> facade.logout(request));
     }
 
 }

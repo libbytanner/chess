@@ -22,25 +22,32 @@ public class ServerFacade {
     }
 
     public RegisterResult register(RegisterRequest regRequest) {
-        var request = buildRequest("POST", "/user", regRequest);
+        var request = buildRequest("POST", "/user", regRequest, null);
         var response = sendRequest(request);
         return handleResponse(response, RegisterResult.class);
     }
 
     public LoginResult login(LoginRequest loginRequest) {
-        var request = buildRequest("POST", "/session", loginRequest);
+        var request = buildRequest("POST", "/session", loginRequest, null);
         var response = sendRequest(request);
         return handleResponse(response, LoginResult.class);
     }
 
-    public void logout(String username, String password) {}
+    public void logout(LogoutRequest logoutRequest) {
+        var request = buildRequest("DELETE", "/session", null, logoutRequest.authToken());
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
 
-    private HttpRequest buildRequest(String method, String path, Request body) {
+    private HttpRequest buildRequest(String method, String path, Request body, String auth) {
         var request = HttpRequest.newBuilder()
             .uri(URI.create(serverUrl + path))
             .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
+        }
+        if (auth != null) {
+            request.setHeader("authorization", auth);
         }
         return request.build();
     }
@@ -65,14 +72,17 @@ public class ServerFacade {
         var status = response.statusCode();
         if (status != 200) {
             var body = response.body();
-            throw new RuntimeException(body);
+            throw new ResponseException(body, status);
         }
-        return new Gson().fromJson(response.body(), responseClass);
+        if (responseClass != null) {
+            return new Gson().fromJson(response.body(), responseClass);
+        }
+        return null;
     }
 
-    private void clear() {
-        var request = buildRequest("DELETE", "/db", null);
+    public void clear() {
+        var request = buildRequest("DELETE", "/db", null, null);
         var response = sendRequest(request);
-        handleResponse(response, RegisterResult.class);
+        handleResponse(response, null);
     }
 }
