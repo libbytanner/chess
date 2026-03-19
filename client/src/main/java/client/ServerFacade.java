@@ -39,6 +39,21 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
+    public ListGamesResult listGames(ListGamesRequest listGamesRequest) {
+        var request = buildRequest("GET", "/game", listGamesRequest, null);
+        var response = sendRequest(request);
+        return handleResponse(response, ListGamesResult.class);
+    }
+
+    public void joinGame(JoinGameRequest joinRequest) {
+    }
+
+    public CreateGameResult createGame(CreateGameRequest createRequest) {
+        return null;
+    }
+
+
+
     private HttpRequest buildRequest(String method, String path, Request body, String auth) {
         var request = HttpRequest.newBuilder()
             .uri(URI.create(serverUrl + path))
