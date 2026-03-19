@@ -34,11 +34,12 @@ public class Server {
             .delete("/session", logoutHandler::handleRequest)
             .get("/game", listGamesHandler::handleRequest)
             .put("/game", joinGameHandler::handleRequest)
+
             .error(400, this::dataAccess)
             .error(401, this::unauthorized)
-                .error(403, this::dataAccess)
-                .exception(Exception.class, this::exceptionHandler)
-                .error(500, this::serverError)
+            .error(403, this::dataAccess)
+            .exception(Exception.class, this::exceptionHandler)
+            .error(500, this::serverError)
             .delete("/db", clearHandler::handleRequest);
     }
 

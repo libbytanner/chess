@@ -40,16 +40,21 @@ public class ServerFacade {
     }
 
     public ListGamesResult listGames(ListGamesRequest listGamesRequest) {
-        var request = buildRequest("GET", "/game", listGamesRequest, null);
+        var request = buildRequest("GET", "/game", listGamesRequest, listGamesRequest.authToken());
         var response = sendRequest(request);
         return handleResponse(response, ListGamesResult.class);
     }
 
     public void joinGame(JoinGameRequest joinRequest) {
+        var request = buildRequest("PUT", "/game", joinRequest, joinRequest.authToken());
+        var response = sendRequest(request);
+        handleResponse(response, null);
     }
 
     public CreateGameResult createGame(CreateGameRequest createRequest) {
-        return null;
+        var request = buildRequest("POST", "/game", createRequest, createRequest.authToken());
+        var response = sendRequest(request);
+        return handleResponse(response, CreateGameResult.class);
     }
 
 

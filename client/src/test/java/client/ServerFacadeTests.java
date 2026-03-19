@@ -1,9 +1,13 @@
 package client;
 
+import chess.ChessGame;
 import dataaccess.*;
 import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -98,6 +102,71 @@ public class ServerFacadeTests {
     public void logoutTestNegative() {
         LogoutRequest request = new LogoutRequest(null);
         assertThrows(ResponseException.class, () -> facade.logout(request));
+    }
+
+    @Test
+    public void ListGamesTestPositive() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        authDao.addAuth(new AuthData("authToken", "existingUser"));
+        ListGamesRequest request = new ListGamesRequest("authToken");
+        GameData game = new GameData(1, "white", "black", "existingGame",
+                new ChessGame());
+        gameDao.addGame(game);
+        List<GameData> expectedList = new ArrayList<>();
+        expectedList.add(game);
+
+        ListGamesResult expectedResult = new ListGamesResult(expectedList);
+
+        assertEquals(expectedResult, facade.listGames(request));
+    }
+
+    @Test
+    public void ListGamesTestNegative() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        ListGamesRequest request = new ListGamesRequest(null);
+
+        assertThrows(ResponseException.class, () -> facade.listGames(request));
+    }
+
+    @Test
+    public void JoinGameTestPositive() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        authDao.addAuth(new AuthData("authToken", "existingUser"));
+        JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.BLACK, 1);
+        GameData game = new GameData(1, "white", null, "existingGame",
+                new ChessGame());
+        gameDao.addGame(game);
+        assertDoesNotThrow(() -> facade.joinGame(request));
+    }
+
+    @Test
+    public void JoinGameTestNegative() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        authDao.addAuth(new AuthData("authToken", "existingUser"));
+        JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.BLACK, 1);
+        GameData game = new GameData(1, "white", "black", "existingGame",
+                new ChessGame());
+        gameDao.addGame(game);
+        assertThrows(ResponseException.class, () -> facade.joinGame(request));
+    }
+
+    @Test
+    public void CreateGameTestPositive() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        authDao.addAuth(new AuthData("authToken", "existingUser"));
+        CreateGameRequest request = new CreateGameRequest("authToken", "new game");
+        GameData game = new GameData(1, "white", "black", "existingGame",
+                new ChessGame());
+        gameDao.addGame(game);
+        CreateGameResult expectedResult = new CreateGameResult(2);
+        assertEquals(expectedResult, facade.createGame(request));
+    }
+
+    @Test
+    public void CreateGameTestNegative() {
+        userDao.addUser(new UserData("existingUser", "password", "email"));
+        CreateGameRequest request = new CreateGameRequest("authToken", null);
+        assertThrows(ResponseException.class, () -> facade.createGame(request));
     }
 
 }
