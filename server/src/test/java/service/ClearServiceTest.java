@@ -4,9 +4,9 @@ import chess.ChessGame;
 import dataaccess.AuthMemoryDAO;
 import dataaccess.GameMemoryDAO;
 import dataaccess.UserMemoryDAO;
-import model.AuthData;
-import model.GameData;
-import model.UserData;
+import model.model.AuthData;
+import model.model.GameData;
+import model.model.UserData;
 import org.junit.jupiter.api.Test;
 import server.service.ClearService;
 

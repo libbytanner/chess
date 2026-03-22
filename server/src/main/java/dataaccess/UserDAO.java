@@ -1,6 +1,6 @@
 package dataaccess;
 
-import model.UserData;
+import model.model.UserData;
 
 import java.util.ArrayList;
 

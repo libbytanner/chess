@@ -1,3 +1,3 @@
-package model;
+package model.model;
 
 public record CreateGameRequest(String authToken, String gameName) implements Request {}

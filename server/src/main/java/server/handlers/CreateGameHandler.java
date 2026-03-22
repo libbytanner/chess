@@ -3,10 +3,8 @@ package server.handlers;
 import dataaccess.*;
 import io.javalin.http.Context;
 import io.javalin.http.UnauthorizedResponse;
-import model.CreateGameRequest;
+import model.model.CreateGameRequest;
 import server.service.GameService;
-
-import java.sql.SQLException;
 
 public class CreateGameHandler extends BaseHandler {
     GameService service;

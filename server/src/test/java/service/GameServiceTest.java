@@ -3,7 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.*;
 import io.javalin.http.UnauthorizedResponse;
-import model.*;
+import model.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

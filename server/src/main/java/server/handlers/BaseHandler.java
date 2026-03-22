@@ -5,8 +5,8 @@ import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import io.javalin.http.Context;
-import model.Request;
-import model.Result;
+import model.model.Request;
+import model.model.Result;
 
 import java.lang.reflect.Type;
 

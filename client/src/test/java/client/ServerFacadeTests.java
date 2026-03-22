@@ -2,7 +2,7 @@ package client;
 
 import chess.ChessGame;
 import dataaccess.*;
-import model.*;
+import model.model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 

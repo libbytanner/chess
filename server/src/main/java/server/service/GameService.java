@@ -7,7 +7,7 @@ import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
-import model.*;
+import model.model.*;
 
 import java.sql.SQLException;
 

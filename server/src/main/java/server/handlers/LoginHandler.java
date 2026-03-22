@@ -3,7 +3,7 @@ package server.handlers;
 import dataaccess.*;
 import io.javalin.http.Context;
 import io.javalin.http.UnauthorizedResponse;
-import model.LoginRequest;
+import model.model.LoginRequest;
 import server.service.UserService;
 
 public class LoginHandler extends BaseHandler {

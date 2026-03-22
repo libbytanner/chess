@@ -2,7 +2,7 @@ package server.service;
 
 import dataaccess.*;
 import io.javalin.http.UnauthorizedResponse;
-import model.*;
+import model.model.*;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService extends Service {

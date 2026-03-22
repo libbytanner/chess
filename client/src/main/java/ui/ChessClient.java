@@ -4,9 +4,9 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import model.*;
 import client.ResponseException;
 import client.ServerFacade;
+import model.model.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;

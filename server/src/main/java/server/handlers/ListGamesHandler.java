@@ -4,7 +4,7 @@ import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import io.javalin.http.Context;
 import io.javalin.http.UnauthorizedResponse;
-import model.ListGamesRequest;
+import model.model.ListGamesRequest;
 import server.service.GameService;
 
 public class ListGamesHandler extends BaseHandler {

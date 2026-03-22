@@ -3,7 +3,7 @@ package server.handlers;
 import dataaccess.AuthDAO;
 import io.javalin.http.Context;
 import io.javalin.http.UnauthorizedResponse;
-import model.LogoutRequest;
+import model.model.LogoutRequest;
 import server.service.UserService;
 
 public class LogoutHandler extends BaseHandler {
