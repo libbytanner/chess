@@ -36,15 +36,19 @@ public class ChessClient {
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit")) {
-            out.print(SET_TEXT_COLOR_BLUE + ">>> " );
+//            out.print(ERASE_SCREEN);
+            printPrompt(out);
             String line = scanner.nextLine();
-
             try {
                 result = eval(line, out);
             } catch (Exception ex) {
-                out.print(ex.getMessage());
+                out.print(ex.getMessage() + "\n");
             }
         }
+    }
+
+    private void printPrompt(PrintStream out) {
+        out.print(SET_TEXT_COLOR_BLUE + ">>> ");
     }
 
     private String eval(String line, PrintStream out) {
@@ -63,12 +67,30 @@ public class ChessClient {
                 yield createGame(out, params);
             case "join":
                 yield joinGame(out, params);
+            case "list":
+                yield listGames(out);
+            case "logout":
+                yield logout(out);
+            case "observe":
+                yield(observe(out, params));
             case "help":
                 yield help(out);
             default:
                 out.print(command + " is not a valid command. Possible commands:\n");
                 yield help(out);
         };
+    }
+
+    private String observe(PrintStream out, String[] params) {
+        if (state.equals(State.LOGGED_IN)) {
+            if (params.length == 1) {
+                int gameID = Integer.parseInt(params[0]);
+                printBoard(out, gameID, ChessGame.TeamColor.WHITE);
+                return "observe";
+            }
+            throw new ResponseException("usage: observe <GAME_ID>\n", 400);
+        }
+        throw new ResponseException("Please log in :)\n for options, type help\n", 400);
     }
 
     private String joinGame(PrintStream out, String[] params) {
@@ -79,32 +101,48 @@ public class ChessClient {
                 switch (params[1]) {
                     case "black" -> color = ChessGame.TeamColor.BLACK;
                     case "white" -> color = ChessGame.TeamColor.WHITE;
-                    default -> throw new ResponseException("invalid color", 400);
-                };
+                    default -> throw new ResponseException("invalid color\n", 400);
+                }
                 try {
                     server.joinGame(new JoinGameRequest(auth, color, gameID));
                 } catch (ResponseException ex) {
-                    throw new ResponseException("color taken. please join as another color, or join a different game.",
+                    throw new ResponseException("color taken. please join as another color, or join a different game.\n",
                             400);
+                } catch (Exception ex) {
+                    throw new ResponseException("Server error.\n",
+                            500);
                 }
                 printBoard(out, gameID, color);
                 return "join";
             }
-            throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 400);
+            throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>\n", 400);
         }
-        throw new ResponseException("Please log in :)\n for options, type help", 400);
+        throw new ResponseException("Please log in :)\n for options, type help\n", 400);
     }
 
     private String createGame(PrintStream out, String... params) {
         if (state.equals(State.LOGGED_IN)) {
             if (params.length == 1) {
                 CreateGameResult result = server.createGame(new CreateGameRequest(auth, params[0]));
-                out.format("Success! %s has id: %d\n", params[0], result.gameID());
+                out.printf("Success! %s created with id %d.\n", params[0], result.gameID());
                 return "create";
             }
-            throw new ResponseException("usage: create <GAME_NAME>", 400);
+            throw new ResponseException("usage: create <GAME_NAME>\n", 400);
         }
-        throw new ResponseException("Please log in :)\nfor options, type help", 400);
+        throw new ResponseException("Please log in :)\nfor options, type help\n", 400);
+    }
+
+    private String listGames(PrintStream out) {
+        if (state.equals(State.LOGGED_IN)) {
+            ListGamesResult result = server.listGames(new ListGamesRequest(auth));
+            for (int i = 0; i < result.games().size(); i++) {
+                GameData game = result.games().get(i);
+                out.format("\t%d. %s   White Player: %s   Black Player: %s\n",
+                        i + 1, game.gameName(), game.whiteUsername(), game.blackUsername());
+            }
+            return "list";
+        }
+        throw new ResponseException("Please log in :)\nfor options, type help\n", 400);
     }
 
     private String register(PrintStream out, String... params) {
@@ -114,16 +152,16 @@ public class ChessClient {
                     RegisterResult result = server.register(new RegisterRequest(params[0], params[1], params[2]));
                     state = State.LOGGED_IN;
                     auth = result.authToken();
-                    out.printf("%s logged in", result.username());
+                    out.printf("%s logged in\n", result.username());
                     return "success";
                 } catch (ResponseException ex) {
-                    out.print("Username taken. Please choose a new username");
+                    out.print("Username taken. Please choose a new username\n");
                     return "fail";
                 }
             }
-            throw new ResponseException("usage: register <USERNAME> <PASSWORD> <EMAIL>", 400);
+            throw new ResponseException("usage: register <USERNAME> <PASSWORD> <EMAIL>\n", 400);
         }
-        throw new ResponseException("You are already logged in :)\n for options, type help", 400);
+        throw new ResponseException("You are already logged in :)\n for options, type help\n", 400);
     }
 
     private String login(PrintStream out, String... params) {
@@ -136,32 +174,42 @@ public class ChessClient {
                     out.printf("%s logged in\n", result.username());
                     return "logged in";
                 } catch (ResponseException ex) {
-                    throw new ResponseException("Invalid username and/or password. Please try again.", 401);
+                    throw new ResponseException("Invalid username and/or password. Please try again.\n", 401);
                 }
             }
-            throw new ResponseException("usage: <USERNAME> <PASSWORD>", 400);
+            throw new ResponseException("usage: <USERNAME> <PASSWORD>\n", 400);
         }
-        throw new ResponseException("You are already logged in :)\nFor options, type help", 400);
+        throw new ResponseException("You are already logged in :)\nFor options, type help\n", 400);
+    }
+
+    private String logout(PrintStream out) {
+        if (state.equals(State.LOGGED_IN)) {
+            server.logout(new LogoutRequest(auth));
+                state = State.LOGGED_OUT;
+                out.print("logged out\n");
+                return "logged in";
+        }
+        throw new ResponseException("Server Error :(\n", 500);
     }
 
     private String help(PrintStream out) {
         if (state.equals(State.LOGGED_OUT)) {
             out.print(SET_TEXT_COLOR_MAGENTA + """
-                    >>> register <USERNAME> <PASSWORD> <EMAIL> - register a new user
-                    >>> login <USERNAME> <PASSWORD> - log in to an existing account
-                    >>> quit - quit chess
-                    >>> help - possible commands
+                    \tregister <USERNAME> <PASSWORD> <EMAIL> - register a new user
+                    \tlogin <USERNAME> <PASSWORD> - log in to an existing account
+                    \tquit - quit chess
+                    \thelp - possible commands
                     """);
             return "logged_out options";
         } else {
             out.print(SET_TEXT_COLOR_MAGENTA + """
-                    >>> create <GAME_NAME> - create game
-                    >>> list - list all games
-                    >>> join <ID> <WHITE|BLACK> - join game as player
-                    >>> observe <ID> - join game as observer
-                    >>> logout - logout user
-                    >>> quit - quit chess
-                    >>> help - possible commands
+                    \tcreate <GAME_NAME> - create game
+                    \tlist - list all games
+                    \tjoin <ID> <WHITE|BLACK> - join game as player
+                    \tobserve <ID> - join game as observer
+                    \tlogout - logout user
+                    \tquit - quit chess
+                    \thelp - possible commands
                     """);
             return "logged_in options";
         }
@@ -170,19 +218,14 @@ public class ChessClient {
     private ChessGame getGame(int gameID) {
         ListGamesResult result = server.listGames(new ListGamesRequest(auth));
         List<GameData> lst = result.games();
-        for (GameData gameData : lst) {
-            if (gameData.gameID() == gameID) {
-                return gameData.game();
-            }
-        }
-        throw new ResponseException("Server Error", 500);
+        return lst.get(gameID - 1).game();
     }
 
     private void printBoard(PrintStream out, int gameID, ChessGame.TeamColor color) {
         ChessGame game = getGame(gameID);
         ChessBoard board = game.getBoard();
         out.print(ERASE_SCREEN);
-        out.print(moveCursorToLocation(100,100) + SET_BG_COLOR_LIGHT_GREY + "\n");
+        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
         out.print(SET_TEXT_BOLD);
         printLetterHeaders(out, color);
         setBlack(out);
@@ -191,10 +234,10 @@ public class ChessClient {
         } else {
             printForBlack(out, board);
         }
-        out.print(SET_BG_COLOR_LIGHT_GREY);
+        out.print(SET_BG_COLOR_DARK_GREY);
         printLetterHeaders(out, color);
         out.print("\n");
-        out.print(RESET_BG_COLOR);
+        out.print(RESET_BG_COLOR + RESET_TEXT_BOLD_FAINT);
     }
 
     private ChessGame.TeamColor printSquare(PrintStream out, ChessGame.TeamColor current, ChessPiece piece) {
@@ -223,14 +266,6 @@ public class ChessClient {
         }
     }
 
-    private ChessGame.TeamColor switchColor(ChessGame.TeamColor current, PrintStream out) {
-        if (current.equals(ChessGame.TeamColor.WHITE)) {
-            return ChessGame.TeamColor.BLACK;
-        } else {
-            return ChessGame.TeamColor.WHITE;
-        }
-    }
-
     private void printForBlack(PrintStream out, ChessBoard board) {
         ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
         for (int i = 1; i <= CHESS_BOARD_SIZE; i++) {
@@ -241,11 +276,7 @@ public class ChessClient {
             }
             printSideNumber(out, i);
             out.print("\n");
-            if (current.equals(ChessGame.TeamColor.WHITE)) {
-                current = ChessGame.TeamColor.BLACK;
-            } else {
-                current = ChessGame.TeamColor.WHITE;
-            }
+            current = switchColor(current, out);
         }
     }
 
@@ -303,14 +334,27 @@ public class ChessClient {
         }
         out.print("\n");
     }
+
     private void printSideNumber(PrintStream out, int i) {
-        out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLUE);
+        out.print(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLUE);
         out.print(" " + i + " ");
     }
+
+    private ChessGame.TeamColor switchColor(ChessGame.TeamColor current, PrintStream out) {
+        if (current.equals(ChessGame.TeamColor.WHITE)) {
+            setBlack(out);
+            return ChessGame.TeamColor.BLACK;
+        } else {
+            setWhite(out);
+            return ChessGame.TeamColor.WHITE;
+        }
+    }
+
     private void setBlack(PrintStream out) {
         out.print(SET_BG_COLOR_BLACK);
         out.print(SET_TEXT_COLOR_RED);
     }
+
     private void setWhite(PrintStream out) {
         out.print(SET_BG_COLOR_WHITE);
         out.print(SET_TEXT_COLOR_RED);
