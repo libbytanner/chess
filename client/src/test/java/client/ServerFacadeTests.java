@@ -105,7 +105,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void ListGamesPositiveTest() {
+    public void listGamesPositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         ListGamesRequest request = new ListGamesRequest("authToken");
@@ -121,7 +121,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void ListGamesNegativeTest() {
+    public void listGamesNegativeTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         ListGamesRequest request = new ListGamesRequest(null);
 
@@ -129,7 +129,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGamePositiveTest() {
+    public void joinGamePositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.BLACK, 1);
@@ -140,7 +140,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGameNegativeTest() {
+    public void joinGameNegativeTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.BLACK, 1);
@@ -151,7 +151,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateGamePositiveTest() {
+    public void createGamePositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         CreateGameRequest request = new CreateGameRequest("authToken", "new game");
@@ -163,7 +163,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateGameNegativeTest() {
+    public void createGameNegativeTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         CreateGameRequest request = new CreateGameRequest("authToken", null);
         assertThrows(ResponseException.class, () -> facade.createGame(request));
