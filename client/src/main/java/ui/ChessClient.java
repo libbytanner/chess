@@ -23,7 +23,7 @@ public class ChessClient {
 
     private enum State {LOGGED_IN, LOGGED_OUT}
 
-    private final int CHESS_BOARD_SIZE = 8;
+    private static final int CHESS_BOARD_SIZE = 8;
 
     public ChessClient(int port) {
         server = new ServerFacade(port);

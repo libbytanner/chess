@@ -59,7 +59,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void registerTestPositive() {
+    public void registerPositiveTest() {
         RegisterRequest request = new RegisterRequest("libby", "me", "helloEmail");
         RegisterResult expectedResult = new RegisterResult("libby", "anAuthToken");
         RegisterResult result = facade.register(request);
@@ -68,13 +68,13 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void registerTestNegative() {
+    public void registerNegativeTest() {
         RegisterRequest request = null;
         assertThrows(ResponseException.class, () -> facade.register(request));
     }
 
     @Test
-    public void loginTestPositive() {
+    public void loginPositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         LoginRequest request = new LoginRequest("existingUser", "password");
         LoginResult expectedResult = new LoginResult("existingUser", "anAuthToken");
@@ -84,13 +84,13 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void loginTestNegative() {
+    public void loginNegativeTest() {
         LoginRequest request = new LoginRequest("NonExistingUser", "password");
         assertThrows(ResponseException.class, () -> facade.login(request));
     }
 
     @Test
-    public void logoutTestPositive() {
+    public void logoutPositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         LogoutRequest request = new LogoutRequest("authToken");
@@ -99,13 +99,13 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void logoutTestNegative() {
+    public void logoutNegativeTest() {
         LogoutRequest request = new LogoutRequest(null);
         assertThrows(ResponseException.class, () -> facade.logout(request));
     }
 
     @Test
-    public void ListGamesTestPositive() {
+    public void ListGamesPositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         ListGamesRequest request = new ListGamesRequest("authToken");
@@ -121,7 +121,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void ListGamesTestNegative() {
+    public void ListGamesNegativeTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         ListGamesRequest request = new ListGamesRequest(null);
 
@@ -129,7 +129,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGameTestPositive() {
+    public void JoinGamePositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.BLACK, 1);
@@ -140,7 +140,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void JoinGameTestNegative() {
+    public void JoinGameNegativeTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         JoinGameRequest request = new JoinGameRequest("authToken", ChessGame.TeamColor.BLACK, 1);
@@ -151,7 +151,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateGameTestPositive() {
+    public void CreateGamePositiveTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         authDao.addAuth(new AuthData("authToken", "existingUser"));
         CreateGameRequest request = new CreateGameRequest("authToken", "new game");
@@ -163,7 +163,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void CreateGameTestNegative() {
+    public void CreateGameNegativeTest() {
         userDao.addUser(new UserData("existingUser", "password", "email"));
         CreateGameRequest request = new CreateGameRequest("authToken", null);
         assertThrows(ResponseException.class, () -> facade.createGame(request));
