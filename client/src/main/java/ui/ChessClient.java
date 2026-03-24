@@ -84,52 +84,63 @@ public class ChessClient {
     private String observe(PrintStream out, String[] params) {
         if (state.equals(State.LOGGED_IN)) {
             if (params.length == 1) {
-                int gameID = Integer.parseInt(params[0]);
-                printBoard(out, gameID, ChessGame.TeamColor.WHITE);
+                int gameID;
+                try {
+                    gameID = Integer.parseInt(params[0]);
+                } catch (Exception ex) {
+                    throw new ResponseException("usage: observe <GAME_ID>", 403);
+                }                printBoard(out, gameID, ChessGame.TeamColor.WHITE);
                 return "observe";
             }
-            throw new ResponseException("usage: observe <GAME_ID>\n", 400);
+            throw new ResponseException("usage: observe <GAME_ID>", 400);
         }
-        throw new ResponseException("Please log in :)\n for options, type help\n", 400);
+        throw new ResponseException("please log in :)\n for options, type help", 400);
     }
 
     private String joinGame(PrintStream out, String[] params) {
         if (state.equals(State.LOGGED_IN)) {
             if (params.length == 2) {
-                int gameID = Integer.parseInt(params[0]);
+                int gameID;
+                try {
+                    gameID = Integer.parseInt(params[0]);
+                } catch (Exception ex) {
+                    throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 403);
+                }
                 ChessGame.TeamColor color;
                 switch (params[1]) {
                     case "black" -> color = ChessGame.TeamColor.BLACK;
                     case "white" -> color = ChessGame.TeamColor.WHITE;
-                    default -> throw new ResponseException("invalid color\n", 400);
+                    default -> throw new ResponseException("invalid color", 400);
                 }
                 try {
                     server.joinGame(new JoinGameRequest(auth, color, gameID));
                 } catch (ResponseException ex) {
-                    throw new ResponseException("color taken. please join as another color, or join a different game.\n",
-                            400);
+                    if (ex.getMessage().equals("bad request")) {
+                        throw new ResponseException("game does not exist. please join an available game", 400);
+                    } else if (ex.getMessage().equals("forbidden")) {
+                        throw new ResponseException("color taken. please join as another color, or join a different game.", 403);
+                    }
                 } catch (Exception ex) {
-                    throw new ResponseException("Server error.\n",
-                            500);
+                    throw new ResponseException("server error.", 500);
                 }
                 printBoard(out, gameID, color);
                 return "join";
             }
-            throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>\n", 400);
+            throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 400);
         }
-        throw new ResponseException("Please log in :)\n for options, type help\n", 400);
+        throw new ResponseException("please log in :)\n for options, type help", 400);
     }
 
     private String createGame(PrintStream out, String... params) {
         if (state.equals(State.LOGGED_IN)) {
             if (params.length == 1) {
-                CreateGameResult result = server.createGame(new CreateGameRequest(auth, params[0]));
-                out.printf("Success! %s created with id %d.\n", params[0], result.gameID());
+                server.createGame(new CreateGameRequest(auth, params[0]));
+                out.printf("success! %s created.\n", params[0]);
                 return "create";
             }
-            throw new ResponseException("usage: create <GAME_NAME>\n", 400);
+            throw new ResponseException("usage: create <GAME_NAME>", 400);
         }
-        throw new ResponseException("Please log in :)\nfor options, type help\n", 400);
+        throw new ResponseException("please log in :)\nfor options, type help", 400);
     }
 
     private String listGames(PrintStream out) {
@@ -142,7 +153,7 @@ public class ChessClient {
             }
             return "list";
         }
-        throw new ResponseException("Please log in :)\nfor options, type help\n", 400);
+        throw new ResponseException("please log in :)\nfor options, type help", 400);
     }
 
     private String register(PrintStream out, String... params) {
@@ -155,13 +166,13 @@ public class ChessClient {
                     out.printf("%s logged in\n", result.username());
                     return "success";
                 } catch (ResponseException ex) {
-                    out.print("Username taken. Please choose a new username\n");
+                    out.print("username taken. please choose a new username\n");
                     return "fail";
                 }
             }
-            throw new ResponseException("usage: register <USERNAME> <PASSWORD> <EMAIL>\n", 400);
+            throw new ResponseException("usage: register <USERNAME> <PASSWORD> <EMAIL>", 400);
         }
-        throw new ResponseException("You are already logged in :)\n for options, type help\n", 400);
+        throw new ResponseException("You are already logged in :)\n for options, type help", 400);
     }
 
     private String login(PrintStream out, String... params) {
@@ -174,12 +185,12 @@ public class ChessClient {
                     out.printf("%s logged in\n", result.username());
                     return "logged in";
                 } catch (ResponseException ex) {
-                    throw new ResponseException("Invalid username and/or password. Please try again.\n", 401);
+                    throw new ResponseException("invalid username and/or password. please try again.", 401);
                 }
             }
-            throw new ResponseException("usage: <USERNAME> <PASSWORD>\n", 400);
+            throw new ResponseException("usage: <USERNAME> <PASSWORD>", 400);
         }
-        throw new ResponseException("You are already logged in :)\nFor options, type help\n", 400);
+        throw new ResponseException("you are already logged in :)\nfor options, type help", 400);
     }
 
     private String logout(PrintStream out) {
@@ -189,7 +200,7 @@ public class ChessClient {
                 out.print("logged out\n");
                 return "logged in";
         }
-        throw new ResponseException("Server Error :(\n", 500);
+        throw new ResponseException("Server Error :(", 500);
     }
 
     private String help(PrintStream out) {
@@ -218,14 +229,17 @@ public class ChessClient {
     private ChessGame getGame(int gameID) {
         ListGamesResult result = server.listGames(new ListGamesRequest(auth));
         List<GameData> lst = result.games();
+        if (gameID < 1 || gameID > lst.size()) {
+            throw new ResponseException("game does not exist. please join one of the available games.", 403);
+        }
         return lst.get(gameID - 1).game();
     }
 
     private void printBoard(PrintStream out, int gameID, ChessGame.TeamColor color) {
         ChessGame game = getGame(gameID);
         ChessBoard board = game.getBoard();
-        out.print(ERASE_SCREEN);
-        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
+//        out.print(ERASE_SCREEN);
+//        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
         out.print(SET_TEXT_BOLD);
         printLetterHeaders(out, color);
         setBlack(out);

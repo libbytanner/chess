@@ -5,9 +5,6 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import server.handlers.*;
 
-import java.sql.Connection;
-
-
 public class Server {
 
     private final Javalin javalin;
@@ -35,9 +32,9 @@ public class Server {
             .get("/game", listGamesHandler::handleRequest)
             .put("/game", joinGameHandler::handleRequest)
 
-            .error(400, this::dataAccess)
+            .error(400, this::badRequest)
             .error(401, this::unauthorized)
-            .error(403, this::dataAccess)
+            .error(403, this::forbidden)
             .exception(Exception.class, this::exceptionHandler)
             .error(500, this::serverError)
             .delete("/db", clearHandler::handleRequest);
@@ -47,8 +44,13 @@ public class Server {
         context.result("{ \"message\" : \"Error: unauthorized\" }");
     }
 
-    public void dataAccess(Context context) {
+    public void badRequest(Context context) {
         context.result("{ \"message\" : \"Error: bad request\" }");
+    }
+
+
+    public void forbidden(Context context) {
+        context.result("{ \"message\" : \"Error: forbidden\" }");
     }
 
     public void serverError(Context context) {

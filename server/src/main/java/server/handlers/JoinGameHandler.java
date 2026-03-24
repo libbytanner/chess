@@ -31,6 +31,7 @@ public class JoinGameHandler extends BaseHandler {
             } catch (UnauthorizedResponse exception) {
                 context.status(401);
             } catch (DataAccessException exception) {
+//                context.result();
                 context.status(400);
             } catch (ForbiddenResponse exception) {
                 context.status(403);
