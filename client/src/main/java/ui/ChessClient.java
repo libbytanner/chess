@@ -270,7 +270,7 @@ public class ChessClient {
         ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
         for (int i = CHESS_BOARD_SIZE; i > 0; i--) {
             printSideNumber(out, i);
-            for (int j = CHESS_BOARD_SIZE; j > 0; j--) {
+            for (int j = 1; j <= CHESS_BOARD_SIZE; j++) {
                 ChessPiece piece = board.getPiece(new ChessPosition(i, j));
                 current = printSquare(out, current, piece);
             }
@@ -284,7 +284,7 @@ public class ChessClient {
         ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
         for (int i = 1; i <= CHESS_BOARD_SIZE; i++) {
             printSideNumber(out, i);
-            for (int j = 1; j <= CHESS_BOARD_SIZE; j++) {
+            for (int j = CHESS_BOARD_SIZE; j > 0; j--) {
                 ChessPiece piece = board.getPiece(new ChessPosition(i, j));
                 current = printSquare(out, current, piece);
             }
