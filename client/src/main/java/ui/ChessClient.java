@@ -4,7 +4,7 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import client.ResponseException;
+import model.ResponseException;
 import client.ServerFacade;
 import model.model.*;
 

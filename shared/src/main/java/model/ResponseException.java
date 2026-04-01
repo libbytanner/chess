@@ -1,4 +1,4 @@
-package client;
+package model;
 
 public class ResponseException extends RuntimeException {
     public final int code;
