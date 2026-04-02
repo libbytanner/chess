@@ -4,9 +4,11 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import client.websocket.ServerMessageObserver;
 import model.ResponseException;
 import client.ServerFacade;
 import model.model.*;
+import websocket.messages.ServerMessage;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -16,17 +18,22 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class ChessClient {
+public class ChessClient implements ServerMessageObserver {
     private final ServerFacade server;
     private String auth;
     private State state;
+
+    @Override
+    public void notify(ServerMessage message) {
+
+    }
 
     private enum State {LOGGED_IN, LOGGED_OUT}
 
     private static final int CHESS_BOARD_SIZE = 8;
 
     public ChessClient(int port) {
-        server = new ServerFacade(port);
+        server = new ServerFacade(port, this);
         state = State.LOGGED_OUT;
     }
 
