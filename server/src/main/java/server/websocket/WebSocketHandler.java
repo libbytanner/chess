@@ -10,6 +10,8 @@ import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.*;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 
@@ -29,17 +31,20 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             gameID = command.getGameID();
-            String username = getUsername(command, getAuthString());
+            String username = getUsername(command, command.getAuthToken());
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, (ConnectCommand) command);
+                case CONNECT -> connect(session, username, (ConnectCommand) command, gameID);
                 case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command);
                 case LEAVE -> leave(session, username, (LeaveGameCommand) command);
                 case RESIGN -> resign(session, username, (ResignCommand) command);
-
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private String getUsername(UserGameCommand command, String authToken) {
+        return "username";
     }
 
     @Override
@@ -47,27 +52,32 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
-    private void connect(String visitorName, Session session) throws IOException {
-        connections.add(session);
-        var message = String.format("%s is in the shop", visitorName);
-        var notification = new Notification(Notification.Type.ARRIVAL, message);
+    private void connect(Session session, String username, ConnectCommand command, int gameID) throws IOException {
+        connections.add(gameID, session);
+        var message = String.format("%s joined the game", username);
+        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcast(session, notification);
     }
 
-    private void exit(String visitorName, Session session) throws IOException {
-        var message = String.format("%s left the shop", visitorName);
-        var notification = new Notification(Notification.Type.DEPARTURE, message);
+    private void makeMove(Session session, String username, MakeMoveCommand command) throws IOException {
+        String moveString = "";
+        var message = String.format("%s made move: %s", username, moveString);
+        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcast(session, notification);
-        connections.remove(session);
+        connections.remove(0, session);
     }
 
-    public void makeNoise(String petName, String sound) throws ResponseException {
+    public void leave(Session session, String username, LeaveGameCommand command) throws ResponseException {
         try {
-            var message = String.format("%s says %s", petName, sound);
-            var notification = new Notification(Notification.Type.NOISE, message);
+            var message = String.format("%s left the game", username);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
             connections.broadcast(null, notification);
         } catch (Exception ex) {
-            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
+            throw new ResponseException(ex.getMessage(), 500);
         }
+    }
+
+    public void resign(Session session, String username, ResignCommand command) throws ResponseException {
+
     }
 }
