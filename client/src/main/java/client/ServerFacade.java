@@ -1,9 +1,14 @@
 package client;
 
+import client.websocket.ServerMessageObserver;
+import client.websocket.WebSocketFacade;
 import com.google.gson.Gson;
+import jakarta.websocket.*;
 import model.ResponseException;
 import model.model.*;
+import websocket.messages.ServerMessage;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
@@ -17,9 +22,14 @@ import java.net.http.HttpResponse.BodyHandlers;
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
+    private final WebSocketFacade ws;
 
-    public ServerFacade(int port) {
+
+    ServerMessageObserver serverMessageObserver;
+
+    public ServerFacade(int port, ServerMessageObserver serverMessageObserver) {
         serverUrl = "http://localhost:" + port;
+        ws = new WebSocketFacade(serverUrl, serverMessageObserver);
     }
 
     public RegisterResult register(RegisterRequest regRequest) {

@@ -4,6 +4,7 @@ import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import server.handlers.*;
+import server.websocket.WebSocketHandler;
 
 public class Server {
 
@@ -21,6 +22,7 @@ public class Server {
         LogoutHandler logoutHandler = new LogoutHandler(authDao);
         ListGamesHandler listGamesHandler = new ListGamesHandler(authDao, gameDao);
         JoinGameHandler joinGameHandler = new JoinGameHandler(userDao, authDao, gameDao);
+        WebSocketHandler webSocketHandler = new WebSocketHandler();
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 
@@ -31,7 +33,11 @@ public class Server {
             .delete("/session", logoutHandler::handleRequest)
             .get("/game", listGamesHandler::handleRequest)
             .put("/game", joinGameHandler::handleRequest)
-
+                .ws("/ws", ws -> {
+                    ws.onConnect(webSocketHandler);
+                    ws.onMessage(webSocketHandler);
+                    ws.onClose(webSocketHandler);
+                })
             .error(400, this::badRequest)
             .error(401, this::unauthorized)
             .error(403, this::forbidden)
