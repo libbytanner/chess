@@ -38,7 +38,7 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     public void notify_message(NotificationMessage message) {
-        out.print(SET_TEXT_COLOR_RED + message.getMessage() + "\n");
+        out.print(SET_TEXT_COLOR_MAGENTA + message.getMessage() + "\n");
     }
 
     public void load_game(LoadGameMessage message) {
@@ -46,7 +46,7 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     public void error(ErrorMessage message) {
-
+        out.print(SET_TEXT_COLOR_RED + message.getMessage() + "\n");
     }
 
     private enum State {LOGGED_IN, LOGGED_OUT}
@@ -398,12 +398,12 @@ public class ChessClient implements ServerMessageObserver {
 
     private void setBlack(PrintStream out) {
         out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_RED);
+        out.print(SET_TEXT_COLOR_MAGENTA);
     }
 
     private void setWhite(PrintStream out) {
         out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_RED);
+        out.print(SET_TEXT_COLOR_MAGENTA);
     }
 
 }

@@ -22,7 +22,7 @@ public class Server {
         LogoutHandler logoutHandler = new LogoutHandler(authDao);
         ListGamesHandler listGamesHandler = new ListGamesHandler(authDao, gameDao);
         JoinGameHandler joinGameHandler = new JoinGameHandler(userDao, authDao, gameDao);
-        WebSocketHandler webSocketHandler = new WebSocketHandler();
+        WebSocketHandler webSocketHandler = new WebSocketHandler(authDao, gameDao);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
 

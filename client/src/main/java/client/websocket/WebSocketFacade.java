@@ -43,6 +43,5 @@ public class WebSocketFacade extends Endpoint {
         } catch (IOException e) {
             throw new ResponseException(e.getMessage(), 500);
         }
-
     }
 }

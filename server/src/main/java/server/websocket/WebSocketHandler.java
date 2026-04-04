@@ -1,23 +1,28 @@
 package server.websocket;
 
 import com.google.gson.Gson;
+import dataaccess.AuthDAO;
+import dataaccess.GameDAO;
 import model.ResponseException;
-import io.javalin.websocket.WsCloseContext;
-import io.javalin.websocket.WsCloseHandler;
-import io.javalin.websocket.WsConnectContext;
-import io.javalin.websocket.WsConnectHandler;
-import io.javalin.websocket.WsMessageContext;
-import io.javalin.websocket.WsMessageHandler;
+import io.javalin.websocket.*;
+import model.model.AuthData;
+import model.model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.*;
-import websocket.messages.NotificationMessage;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import java.io.IOException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
-
+//    private final UserService userService;
+    private final AuthDAO authDao;
+    private final GameDAO gameDao;
     private final ConnectionManager connections = new ConnectionManager();
+
+    public WebSocketHandler(AuthDAO authDao, GameDAO gameDao) {
+        this.authDao = authDao;
+        this.gameDao = gameDao;
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -51,7 +56,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private String getUsername(String authToken) {
-        return "username";
+        AuthData auth = authDao.findAuth(authToken);
+        return auth.username();
     }
 
     @Override
@@ -59,11 +65,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
+    private LoadGameMessage createLoadGameMessage(int gameID) {
+        GameData game = gameDao.getGame(gameID);
+        return new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
+    }
+
     private void connect(Session session, String username, ConnectCommand command, int gameID) throws IOException {
-        connections.add(gameID, session);
-        var message = String.format("%s joined the game", username);
-        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(session, gameID, notification);
+        if (gameDao.getGame(gameID) == null) {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid game");
+            connections.send(session, error);
+        } else {
+            connections.add(gameID, session);
+            var message = String.format("%s joined the game", username);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcast(session, gameID, notification);
+            var loadGameMessage = createLoadGameMessage(gameID);
+            connections.send(session, loadGameMessage);
+        }
     }
 
     private void makeMove(Session session, String username, MakeMoveCommand command, int gameID) throws IOException {
