@@ -3,12 +3,8 @@ package client;
 import client.websocket.ServerMessageObserver;
 import client.websocket.WebSocketFacade;
 import com.google.gson.Gson;
-import jakarta.websocket.*;
 import model.ResponseException;
 import model.model.*;
-import websocket.messages.ServerMessage;
-
-import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
@@ -23,9 +19,6 @@ public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
     private final WebSocketFacade ws;
-
-
-    ServerMessageObserver serverMessageObserver;
 
     public ServerFacade(int port, ServerMessageObserver serverMessageObserver) {
         serverUrl = "http://localhost:" + port;
@@ -59,6 +52,7 @@ public class ServerFacade {
     public void joinGame(JoinGameRequest joinRequest) {
         var request = buildRequest("PUT", "/game", joinRequest, joinRequest.authToken());
         var response = sendRequest(request);
+        ws.join(joinRequest.authToken(), joinRequest.gameID());
         handleResponse(response, null);
     }
 

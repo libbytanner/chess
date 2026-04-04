@@ -8,6 +8,9 @@ import client.websocket.ServerMessageObserver;
 import model.ResponseException;
 import client.ServerFacade;
 import model.model.*;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.PrintStream;
@@ -22,9 +25,27 @@ public class ChessClient implements ServerMessageObserver {
     private final ServerFacade server;
     private String auth;
     private State state;
+    private PrintStream out;
 
     @Override
     public void notify(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case NOTIFICATION -> notify_message((NotificationMessage) message);
+            case LOAD_GAME -> load_game((LoadGameMessage) message);
+            case ERROR -> error((ErrorMessage) message);
+        }
+        printPrompt(out);
+    }
+
+    public void notify_message(NotificationMessage message) {
+        out.print(SET_TEXT_COLOR_RED + message.getMessage() + "\n");
+    }
+
+    public void load_game(LoadGameMessage message) {
+        printBoard(out, message.getGame(), ChessGame.TeamColor.WHITE);
+    }
+
+    public void error(ErrorMessage message) {
 
     }
 
@@ -39,6 +60,7 @@ public class ChessClient implements ServerMessageObserver {
 
     public void run() {
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        this.out = out;
         out.println(WHITE_KING + "Welcome to Chess. For options, type help" + WHITE_KING);
         Scanner scanner = new Scanner(System.in);
         var result = "";
@@ -96,7 +118,9 @@ public class ChessClient implements ServerMessageObserver {
                     gameID = Integer.parseInt(params[0]);
                 } catch (Exception ex) {
                     throw new ResponseException("usage: observe <GAME_ID>", 403);
-                }                printBoard(out, gameID, ChessGame.TeamColor.WHITE);
+                }
+                ChessGame game = getGame(gameID);
+                printBoard(out, game, ChessGame.TeamColor.WHITE);
                 return "observe";
             }
             throw new ResponseException("usage: observe <GAME_ID>", 400);
@@ -130,7 +154,8 @@ public class ChessClient implements ServerMessageObserver {
                 } catch (Exception ex) {
                     throw new ResponseException("server error.", 500);
                 }
-                printBoard(out, gameID, color);
+                ChessGame game = getGame(gameID);
+                printBoard(out, game, color);
                 return "join";
             }
             throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 400);
@@ -242,11 +267,11 @@ public class ChessClient implements ServerMessageObserver {
         return lst.get(gameID - 1).game();
     }
 
-    private void printBoard(PrintStream out, int gameID, ChessGame.TeamColor color) {
-        ChessGame game = getGame(gameID);
+    private void printBoard(PrintStream out, ChessGame game, ChessGame.TeamColor color) {
         ChessBoard board = game.getBoard();
 //        out.print(ERASE_SCREEN);
 //        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
+        out.print(SET_BG_COLOR_DARK_GREY + "\n");
         out.print(SET_TEXT_BOLD);
         printLetterHeaders(out, color);
         setBlack(out);
