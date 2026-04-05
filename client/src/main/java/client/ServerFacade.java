@@ -82,7 +82,7 @@ public class ServerFacade {
         if (row == 0 || col < 1 || col > 8) {
             throw new ResponseException("Invalid position. Ex: move e4 d5 [optional promotion piece]", 400);
         }
-        return new ChessPosition(row, col);
+        return new ChessPosition(col, row);
     }
 
     public void makeMove(String authToken, String... params) {
@@ -149,5 +149,9 @@ public class ServerFacade {
         var request = buildRequest("DELETE", "/db", null, null);
         var response = sendRequest(request);
         handleResponse(response, null);
+    }
+
+    public void resign(String authToken) {
+        ws.resign(authToken);
     }
 }

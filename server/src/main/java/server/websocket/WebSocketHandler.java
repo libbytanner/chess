@@ -99,7 +99,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void makeMove(Session session, String username, MakeMoveCommand command, int gameID) throws IOException {
         if (authDao.findAuth(command.getAuthToken()) != null) {
-            String moveString = "";
             GameData game = gameDao.getGame(gameID);
             boolean outOfTurn = false;
             if (game.game().getTeamTurn().equals(ChessGame.TeamColor.WHITE) && !game.whiteUsername().equals(username)) {
@@ -116,7 +115,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     game.game().makeMove(command.getMove());
                     var loadGameMessage = createLoadGameMessage(gameID);
                     connections.broadcast(null, gameID, loadGameMessage);
-                    var message = String.format("%s made move: %s", username, moveString);
+                    var message = String.format("%s made move: %s", username, command.getMove().toString());
                     var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
                     connections.broadcast(session, gameID, notification);
                 } catch (InvalidMoveException e) {
@@ -139,8 +138,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     public void resign(Session session, String username, ResignCommand command) throws ResponseException, IOException {
-        String message = String.format("resign %s", username);
-        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(null, command.getGameID(), notification);
+        GameData game = gameDao.getGame(command.getGameID());
+        if (!game.whiteUsername().equals(username) &&
+                !game.blackUsername().equals(username)) {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
+                    "Error: Can't resign as an observer");
+            connections.send(session, error);
+        } else if (game.game().getTeamTurn() == null) {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
+                    "Error: Can't resign if opposing player has resigned");
+            connections.send(session, error);
+        } else {
+            String message = String.format("resign %s", username);
+            game.game().setTeamTurn(null);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcast(null, command.getGameID(), notification);
+        }
     }
 }

@@ -103,10 +103,17 @@ public class ChessClient implements ServerMessageObserver {
                 yield help(out);
             case "move":
                 yield makeMove(params);
+            case "resign":
+                yield resign();
             default:
                 out.print(command + " is not a valid command. Possible commands:\n");
                 yield help(out);
         };
+    }
+
+    private String resign() {
+        server.resign(auth);
+        return "resign";
     }
 
     private String observe(PrintStream out, String[] params) {
@@ -420,6 +427,9 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String makeMove(String... params) {
+        if (params.length != 2) {
+            throw new ResponseException("usage: move <start> <end>", 400);
+        }
         server.makeMove(auth, params);
         return "move";
     }

@@ -6,6 +6,7 @@ import jakarta.websocket.*;
 import model.ResponseException;
 import websocket.commands.ConnectCommand;
 import websocket.commands.MakeMoveCommand;
+import websocket.commands.ResignCommand;
 import websocket.messages.NotificationMessage;
 
 import java.io.IOException;
@@ -54,6 +55,15 @@ public class WebSocketFacade extends Endpoint {
         try {
             MakeMoveCommand moveCommand = new MakeMoveCommand(authToken, gameID, move);
             this.session.getBasicRemote().sendText(new Gson().toJson(moveCommand));
+        } catch (IOException e) {
+            throw new ResponseException(e.getMessage(), 500);
+        }
+    }
+
+    public void resign(String authToken) {
+        try {
+            ResignCommand resignCommand = new ResignCommand(authToken, gameID);
+            this.session.getBasicRemote().sendText(new Gson().toJson(resignCommand));
         } catch (IOException e) {
             throw new ResponseException(e.getMessage(), 500);
         }

@@ -37,7 +37,18 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return String.format("[%d, %d]", row, col);
+        String rowString = null;
+        switch (row) {
+            case 1 -> rowString = "a";
+            case 2 -> rowString = "b";
+            case 3 -> rowString = "c";
+            case 4 -> rowString = "d";
+            case 5 -> rowString = "e";
+            case 6 -> rowString = "f";
+            case 7 -> rowString = "g";
+            case 8 -> rowString = "h";
+        }
+        return String.format("[%s, %d]", rowString, col);
     }
 
     @Override
