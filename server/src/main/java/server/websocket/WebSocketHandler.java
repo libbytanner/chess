@@ -43,14 +43,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch (command.getCommandType()) {
                 case CONNECT -> {
                     ConnectCommand newCommand = new ConnectCommand(command.getAuthToken(), gameID);
-                    connect(session, newCommand.getAuthToken(), newCommand, gameID);
+                    connect(session, username, newCommand, gameID);
                 }
                 case MAKE_MOVE -> {
                     MakeMoveCommand newCommand = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
                     makeMove(session, username, newCommand, gameID);
                 }
-                case LEAVE -> leave(session, username, (LeaveGameCommand) command, gameID);
-                case RESIGN -> resign(session, username, (ResignCommand) command);
+                case LEAVE -> leave(session, username, (LeaveGameCommand) command);
+                case RESIGN -> {
+                    ResignCommand newCommand = new Gson().fromJson(ctx.message(), ResignCommand.class);
+                    resign(session, username, newCommand);
+                }
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -80,13 +83,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
     }
 
-    private void connect(Session session, String authToken, ConnectCommand command, int gameID) throws IOException {
+    private void connect(Session session, String username, ConnectCommand command, int gameID) throws IOException {
         if (gameDao.getGame(gameID) == null) {
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid game");
             connections.send(session, error);
-        } else {
+        } else if (username != null) {
             connections.add(gameID, session);
-            var message = String.format("%s joined the game", authDao.findAuth(authToken).username());
+            var message = String.format("%s joined the game", username);
             var loadGameMessage = createLoadGameMessage(gameID);
             connections.send(session, loadGameMessage);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
@@ -124,18 +127,20 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    public void leave(Session session, String username, LeaveGameCommand command, int gameID) throws ResponseException {
+    public void leave(Session session, String username, LeaveGameCommand command) throws ResponseException {
         try {
             var message = String.format("%s left the game", username);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(null, gameID, notification);
+            connections.broadcast(null, command.getGameID(), notification);
         } catch (Exception ex) {
             throw new ResponseException(ex.getMessage(), 500);
         }
-        connections.remove(gameID, session);
+        connections.remove(command.getGameID(), session);
     }
 
-    public void resign(Session session, String username, ResignCommand command) throws ResponseException {
-
+    public void resign(Session session, String username, ResignCommand command) throws ResponseException, IOException {
+        String message = String.format("resign %s", username);
+        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcast(null, command.getGameID(), notification);
     }
 }
