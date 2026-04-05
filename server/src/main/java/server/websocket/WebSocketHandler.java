@@ -95,23 +95,33 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void makeMove(Session session, String username, MakeMoveCommand command, int gameID) throws IOException {
-        String moveString = "";
-        ChessGame game = gameDao.getGame(gameID).game();
-        switch (game.getTeamTurn()) {
-            case ChessGame.TeamColor.WHITE -> {
-                if (command.)
+        if (authDao.findAuth(command.getAuthToken()) != null) {
+            String moveString = "";
+            GameData game = gameDao.getGame(gameID);
+            boolean outOfTurn = false;
+            if (game.game().getTeamTurn().equals(ChessGame.TeamColor.WHITE) && !game.whiteUsername().equals(username)) {
+                outOfTurn = true;
+            } else if (game.game().getTeamTurn().equals(ChessGame.TeamColor.BLACK) && !game.blackUsername().equals(username)) {
+                outOfTurn = true;
+            }
+
+            if (outOfTurn) {
+                var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Out of turn");
+                connections.send(session, error);
+            } else {
+                try {
+                    game.game().makeMove(command.getMove());
+                    var loadGameMessage = createLoadGameMessage(gameID);
+                    connections.broadcast(null, gameID, loadGameMessage);
+                    var message = String.format("%s made move: %s", username, moveString);
+                    var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+                    connections.broadcast(session, gameID, notification);
+                } catch (InvalidMoveException e) {
+                    var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid move");
+                    connections.send(session, error);
+                }
             }
         }
-        try {
-            game.makeMove(command.getMove());
-            var loadGameMessage = createLoadGameMessage(gameID);
-            connections.broadcast(null, gameID, loadGameMessage);
-            var message = String.format("%s made move: %s", username, moveString);
-            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(session, gameID, notification);
-        } catch (InvalidMoveException e) {
-            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid move");
-            connections.send(session, error);}
     }
 
     public void leave(Session session, String username, LeaveGameCommand command, int gameID) throws ResponseException {
