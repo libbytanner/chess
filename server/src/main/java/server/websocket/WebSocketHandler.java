@@ -44,13 +44,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch (command.getCommandType()) {
                 case CONNECT -> {
                     ConnectCommand newCommand = new ConnectCommand(command.getAuthToken(), gameID);
-                    connect(session, username, newCommand, gameID);
+                    connect(session, username, newCommand);
                 }
                 case MAKE_MOVE -> {
                     MakeMoveCommand newCommand = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
                     makeMove(session, username, newCommand, gameID);
                 }
-                case LEAVE -> leave(session, username, (LeaveGameCommand) command);
+                case LEAVE -> {
+                    LeaveGameCommand newCommand = new Gson().fromJson(ctx.message(), LeaveGameCommand.class);
+                    leave(session, username, newCommand);
+                }
                 case RESIGN -> {
                     ResignCommand newCommand = new Gson().fromJson(ctx.message(), ResignCommand.class);
                     resign(session, username, newCommand);
@@ -85,17 +88,52 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
     }
 
-    private void connect(Session session, String username, ConnectCommand command, int gameID) throws IOException {
-        if (gameDao.getGame(gameID) == null) {
+    private void connect(Session session, String username, ConnectCommand command) throws IOException {
+        if (gameDao.getGame(command.getGameID()) == null) {
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid game");
             connections.send(session, error);
         } else if (username != null) {
-            connections.add(gameID, session);
+            connections.add(command.getGameID(), session);
             var message = String.format("%s joined the game", username);
-            var loadGameMessage = createLoadGameMessage(gameID);
+            var loadGameMessage = createLoadGameMessage(command.getGameID());
             connections.send(session, loadGameMessage);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(session, gameID, notification);
+            connections.broadcast(session, command.getGameID(), notification);
+        }
+    }
+
+    private boolean checkCheckmate(GameData game) throws IOException {
+        if (game.game().isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            var checkmateNotification = new NotificationMessage(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "white in checkmate!");
+            connections.broadcast(null, game.gameID(), checkmateNotification);
+            game.game().setTeamTurn(null);
+            return true;
+        } if (game.game().isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            var checkmateNotification = new NotificationMessage(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "black in checkmate!");
+            connections.broadcast(null, game.gameID(), checkmateNotification);
+            game.game().setTeamTurn(null);
+            return true;
+        }
+        return false;
+    }
+
+    private void checkCheck(GameData game) throws IOException {
+        if (game.game().isInCheck(ChessGame.TeamColor.WHITE)) {
+            var checkmateNotification = new NotificationMessage(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "white in check!");
+            connections.broadcast(null, game.gameID(), checkmateNotification);
+            game.game().setTeamTurn(null);
+        } if (game.game().isInCheck(ChessGame.TeamColor.BLACK)) {
+            var checkmateNotification = new NotificationMessage(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "black in check!");
+            connections.broadcast(null, game.gameID(), checkmateNotification);
+            game.game().setTeamTurn(null);
         }
     }
 
@@ -105,16 +143,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             ChessGame.TeamColor color = game.game().getTeamTurn();
             boolean outOfTurn = false;
 
-            if (color != null && color.equals(ChessGame.TeamColor.WHITE) && !game.whiteUsername().equals(username)) {
+            if (color.equals(ChessGame.TeamColor.WHITE) && !game.whiteUsername().equals(username)) {
                 outOfTurn = true;
-            } else if (color != null && color.equals(ChessGame.TeamColor.BLACK) && !game.blackUsername().equals(username)) {
+            } else if (color.equals(ChessGame.TeamColor.BLACK) && !game.blackUsername().equals(username)) {
                 outOfTurn = true;
             }
 
-            if (color == null) {
-                var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Game has ended");
-                connections.send(session, error);
-            } else if (outOfTurn) {
+            if (outOfTurn) {
                 var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Out of turn");
                 connections.send(session, error);
             } else {
@@ -126,19 +161,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     var message = String.format("%s made move: %s", username, command.getMove().toString());
                     var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
                     connections.broadcast(session, gameID, notification);
-                    if (game.game().isInCheckmate(ChessGame.TeamColor.WHITE)) {
-                        var checkmateNotification = new NotificationMessage(
-                                ServerMessage.ServerMessageType.NOTIFICATION,
-                                String.format("%s won!", game.whiteUsername()));
-                        connections.broadcast(null, gameID, checkmateNotification);
-                        game.game().setTeamTurn(null);
-                    } else if (game.game().isInCheckmate(ChessGame.TeamColor.BLACK)) {
-                        var checkmateNotification = new NotificationMessage(
-                                ServerMessage.ServerMessageType.NOTIFICATION,
-                                String.format("%s won!", game.blackUsername()));
-                        connections.broadcast(null, gameID, checkmateNotification);
-                        game.game().setTeamTurn(null);
+                    gameDao.updateGame(game, null, username, game.game());
+
+                    if (!checkCheckmate(game)) {
+                        checkCheck(game);
                     }
+                    checkStalemate(game);
+
                     gameDao.updateGame(game, null, username, game.game());
                 } catch (InvalidMoveException e) {
                     var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid move");
@@ -150,11 +179,25 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
+    private void checkStalemate(GameData game) throws IOException {
+        if (game.game().isInStalemate(ChessGame.TeamColor.WHITE)) {
+            var checkmateNotification = new NotificationMessage(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "white in stalemate");
+            connections.broadcast(null, game.gameID(), checkmateNotification);
+        } if (game.game().isInStalemate(ChessGame.TeamColor.BLACK)) {
+            var checkmateNotification = new NotificationMessage(
+                    ServerMessage.ServerMessageType.NOTIFICATION,
+                    "black in stalemate");
+            connections.broadcast(null, game.gameID(), checkmateNotification);
+        }
+    }
+
     public void leave(Session session, String username, LeaveGameCommand command) throws ResponseException {
         try {
             var message = String.format("%s left the game", username);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(null, command.getGameID(), notification);
+            connections.broadcast(session, command.getGameID(), notification);
         } catch (Exception ex) {
             throw new ResponseException(ex.getMessage(), 500);
         }
@@ -174,6 +217,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             connections.send(session, error);
         } else {
             String message = String.format("resign %s", username);
+
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcast(null, command.getGameID(), notification);
+
             game.game().setTeamTurn(null);
             try {
                 gameDao.updateGame(game, null, username, game.game());
@@ -182,8 +229,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
             GameData retrievedGame = gameDao.getGame(command.getGameID());
 
-            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(null, command.getGameID(), notification);
         }
     }
 }

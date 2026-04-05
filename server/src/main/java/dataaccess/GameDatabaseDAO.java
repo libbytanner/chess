@@ -142,7 +142,7 @@ public class GameDatabaseDAO implements GameDAO {
                 whiteUsername VARCHAR(255),
                 blackUsername VARCHAR(255),
                 gameName VARCHAR(255) NOT NULL,
-                game VARCHAR(2000) NOT NULL, 
+                game VARCHAR(2000) NOT NULL,
                 PRIMARY KEY (gameID)
             )
             """;
