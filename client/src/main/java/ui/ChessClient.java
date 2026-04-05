@@ -1,9 +1,6 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import client.websocket.ServerMessageObserver;
 import model.ResponseException;
 import client.ServerFacade;
@@ -49,7 +46,7 @@ public class ChessClient implements ServerMessageObserver {
         out.print(SET_TEXT_COLOR_RED + message.getMessage() + "\n");
     }
 
-    private enum State {LOGGED_IN, LOGGED_OUT}
+    private enum State {LOGGED_IN, LOGGED_OUT, GAME}
 
     private static final int CHESS_BOARD_SIZE = 8;
 
@@ -104,6 +101,8 @@ public class ChessClient implements ServerMessageObserver {
                 yield(observe(out, params));
             case "help":
                 yield help(out);
+            case "move":
+                yield makeMove(params);
             default:
                 out.print(command + " is not a valid command. Possible commands:\n");
                 yield help(out);
@@ -156,6 +155,7 @@ public class ChessClient implements ServerMessageObserver {
                 }
                 ChessGame game = getGame(gameID);
                 printBoard(out, game, color);
+                state = State.GAME;
                 return "join";
             }
             throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 400);
@@ -184,8 +184,12 @@ public class ChessClient implements ServerMessageObserver {
                         i + 1, game.gameName(), game.whiteUsername(), game.blackUsername());
             }
             return "list";
+        } else if (state.equals(State.LOGGED_OUT)) {
+            throw new ResponseException("please log in :)\nfor options, type help", 400);
+        } else {
+            out.print("game commands include: \n");
+            return help(out);
         }
-        throw new ResponseException("please log in :)\nfor options, type help", 400);
     }
 
     private String register(PrintStream out, String... params) {
@@ -244,7 +248,7 @@ public class ChessClient implements ServerMessageObserver {
                     \thelp - possible commands
                     """);
             return "logged_out options";
-        } else {
+        } else if (state.equals(State.LOGGED_IN)) {
             out.print(SET_TEXT_COLOR_MAGENTA + """
                     \tcreate <GAME_NAME> - create game
                     \tlist - list all games
@@ -255,6 +259,15 @@ public class ChessClient implements ServerMessageObserver {
                     \thelp - possible commands
                     """);
             return "logged_in options";
+        } else {
+            out.print(SET_TEXT_COLOR_MAGENTA + """
+                    \tmove <old_position> <new_position> - move
+                    \tredraw - redraw the chess board
+                    \thighlight <ID> - highlight legal moves
+                    \tleave - leave the game
+                    \tresign - forfeit
+                    """);
+            return "game options";
         }
     }
 
@@ -404,6 +417,11 @@ public class ChessClient implements ServerMessageObserver {
     private void setWhite(PrintStream out) {
         out.print(SET_BG_COLOR_WHITE);
         out.print(SET_TEXT_COLOR_MAGENTA);
+    }
+
+    private String makeMove(String... params) {
+        server.makeMove(auth, params);
+        return "move";
     }
 
 }

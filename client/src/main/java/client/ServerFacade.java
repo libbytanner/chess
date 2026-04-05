@@ -1,5 +1,8 @@
 package client;
 
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import client.websocket.ServerMessageObserver;
 import client.websocket.WebSocketFacade;
 import com.google.gson.Gson;
@@ -62,7 +65,44 @@ public class ServerFacade {
         return handleResponse(response, CreateGameResult.class);
     }
 
+    private ChessPosition makePosition(String position) {
+        int row;
+        int col = Integer.parseInt(position.substring(position.length() - 1));
+        switch (position.charAt(0)) {
+            case 'a' -> row = 1;
+            case 'b' -> row = 2;
+            case 'c' -> row = 3;
+            case 'd' -> row = 4;
+            case 'e' -> row = 5;
+            case 'f' -> row = 6;
+            case 'g' -> row = 7;
+            case 'h' -> row = 8;
+            default -> row = 0;
+        }
+        if (row == 0 || col < 1 || col > 8) {
+            throw new ResponseException("Invalid position. Ex: move e4 d5 [optional promotion piece]", 400);
+        }
+        return new ChessPosition(row, col);
+    }
 
+    public void makeMove(String authToken, String... params) {
+        ChessPosition start = makePosition(params[0]);
+        ChessPosition end = makePosition(params[1]);
+        ChessPiece.PieceType type;
+        if (params.length > 2) {
+            switch (params[2]) {
+                case "knight" -> type = ChessPiece.PieceType.KNIGHT;
+                case "queen" -> type = ChessPiece.PieceType.QUEEN;
+                case "rook" -> type = ChessPiece.PieceType.ROOK;
+                case "bishop" -> type = ChessPiece.PieceType.BISHOP;
+                default -> type = null;
+            }
+        } else {
+            type = null;
+        }
+        ChessMove move = new ChessMove(start, end, type);
+        ws.makeMove(authToken, move);
+    }
 
     private HttpRequest buildRequest(String method, String path, Request body, String auth) {
         var request = HttpRequest.newBuilder()

@@ -1,5 +1,7 @@
 package server.websocket;
 
+import chess.ChessGame;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
@@ -36,14 +38,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             gameID = command.getGameID();
-            String username = getUsername(command.getAuthToken());
+            String username = getUsername(session, command.getAuthToken());
             saveSession(gameID, session);
             switch (command.getCommandType()) {
                 case CONNECT -> {
                     ConnectCommand newCommand = new ConnectCommand(command.getAuthToken(), gameID);
-                    connect(session, username, newCommand, gameID);
+                    connect(session, newCommand.getAuthToken(), newCommand, gameID);
                 }
-                case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command, gameID);
+                case MAKE_MOVE -> {
+                    MakeMoveCommand newCommand = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
+                    makeMove(session, username, newCommand, gameID);
+                }
                 case LEAVE -> leave(session, username, (LeaveGameCommand) command, gameID);
                 case RESIGN -> resign(session, username, (ResignCommand) command);
             }
@@ -55,8 +60,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void saveSession(int gameID, Session session) {
     }
 
-    private String getUsername(String authToken) {
+    private String getUsername(Session session, String authToken) throws IOException {
         AuthData auth = authDao.findAuth(authToken);
+        if (auth == null) {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Unauthorized");
+            connections.send(session, error);
+            return null;
+        }
         return auth.username();
     }
 
@@ -70,26 +80,38 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
     }
 
-    private void connect(Session session, String username, ConnectCommand command, int gameID) throws IOException {
+    private void connect(Session session, String authToken, ConnectCommand command, int gameID) throws IOException {
         if (gameDao.getGame(gameID) == null) {
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid game");
             connections.send(session, error);
         } else {
             connections.add(gameID, session);
-            var message = String.format("%s joined the game", username);
-            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(session, gameID, notification);
+            var message = String.format("%s joined the game", authDao.findAuth(authToken).username());
             var loadGameMessage = createLoadGameMessage(gameID);
             connections.send(session, loadGameMessage);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcast(session, gameID, notification);
         }
     }
 
     private void makeMove(Session session, String username, MakeMoveCommand command, int gameID) throws IOException {
         String moveString = "";
-        var message = String.format("%s made move: %s", username, moveString);
-        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(session, gameID, notification);
-        connections.remove(0, session);
+        ChessGame game = gameDao.getGame(gameID).game();
+        switch (game.getTeamTurn()) {
+            case ChessGame.TeamColor.WHITE -> {
+                if (command.)
+            }
+        }
+        try {
+            game.makeMove(command.getMove());
+            var loadGameMessage = createLoadGameMessage(gameID);
+            connections.broadcast(null, gameID, loadGameMessage);
+            var message = String.format("%s made move: %s", username, moveString);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcast(session, gameID, notification);
+        } catch (InvalidMoveException e) {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid move");
+            connections.send(session, error);}
     }
 
     public void leave(Session session, String username, LeaveGameCommand command, int gameID) throws ResponseException {
@@ -100,6 +122,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         } catch (Exception ex) {
             throw new ResponseException(ex.getMessage(), 500);
         }
+        connections.remove(gameID, session);
     }
 
     public void resign(Session session, String username, ResignCommand command) throws ResponseException {
