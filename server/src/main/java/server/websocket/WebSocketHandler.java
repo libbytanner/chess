@@ -14,6 +14,7 @@ import websocket.commands.*;
 import websocket.messages.*;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 //    private final UserService userService;
@@ -61,6 +62,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void saveSession(int gameID, Session session) {
+
     }
 
     private String getUsername(Session session, String authToken) throws IOException {
@@ -100,27 +102,49 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void makeMove(Session session, String username, MakeMoveCommand command, int gameID) throws IOException {
         if (authDao.findAuth(command.getAuthToken()) != null) {
             GameData game = gameDao.getGame(gameID);
+            ChessGame.TeamColor color = game.game().getTeamTurn();
             boolean outOfTurn = false;
-            if (game.game().getTeamTurn().equals(ChessGame.TeamColor.WHITE) && !game.whiteUsername().equals(username)) {
+
+            if (color != null && color.equals(ChessGame.TeamColor.WHITE) && !game.whiteUsername().equals(username)) {
                 outOfTurn = true;
-            } else if (game.game().getTeamTurn().equals(ChessGame.TeamColor.BLACK) && !game.blackUsername().equals(username)) {
+            } else if (color != null && color.equals(ChessGame.TeamColor.BLACK) && !game.blackUsername().equals(username)) {
                 outOfTurn = true;
             }
 
-            if (outOfTurn) {
+            if (color == null) {
+                var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Game has ended");
+                connections.send(session, error);
+            } else if (outOfTurn) {
                 var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Out of turn");
                 connections.send(session, error);
             } else {
                 try {
                     game.game().makeMove(command.getMove());
+                    gameDao.updateGame(game, null, username, game.game());
                     var loadGameMessage = createLoadGameMessage(gameID);
                     connections.broadcast(null, gameID, loadGameMessage);
                     var message = String.format("%s made move: %s", username, command.getMove().toString());
                     var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
                     connections.broadcast(session, gameID, notification);
+                    if (game.game().isInCheckmate(ChessGame.TeamColor.WHITE)) {
+                        var checkmateNotification = new NotificationMessage(
+                                ServerMessage.ServerMessageType.NOTIFICATION,
+                                String.format("%s won!", game.whiteUsername()));
+                        connections.broadcast(null, gameID, checkmateNotification);
+                        game.game().setTeamTurn(null);
+                    } else if (game.game().isInCheckmate(ChessGame.TeamColor.BLACK)) {
+                        var checkmateNotification = new NotificationMessage(
+                                ServerMessage.ServerMessageType.NOTIFICATION,
+                                String.format("%s won!", game.blackUsername()));
+                        connections.broadcast(null, gameID, checkmateNotification);
+                        game.game().setTeamTurn(null);
+                    }
+                    gameDao.updateGame(game, null, username, game.game());
                 } catch (InvalidMoveException e) {
                     var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, "Error: Invalid move");
                     connections.send(session, error);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -146,11 +170,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             connections.send(session, error);
         } else if (game.game().getTeamTurn() == null) {
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
-                    "Error: Can't resign if opposing player has resigned");
+                    "Error: Can't resign once game has ended");
             connections.send(session, error);
         } else {
             String message = String.format("resign %s", username);
             game.game().setTeamTurn(null);
+            try {
+                gameDao.updateGame(game, null, username, game.game());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            GameData retrievedGame = gameDao.getGame(command.getGameID());
+
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
             connections.broadcast(null, command.getGameID(), notification);
         }
