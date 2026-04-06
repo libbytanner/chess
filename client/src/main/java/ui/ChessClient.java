@@ -23,6 +23,7 @@ public class ChessClient implements ServerMessageObserver {
     private String auth;
     private State state;
     private PrintStream out;
+    private ChessGame.TeamColor color;
 
     @Override
     public void notify(ServerMessage message) {
@@ -39,7 +40,7 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     public void load_game(LoadGameMessage message) {
-        printBoard(out, message.getGame(), ChessGame.TeamColor.WHITE);
+        printBoard(out, message.getGame(), color);
     }
 
     public void error(ErrorMessage message) {
@@ -92,23 +93,31 @@ public class ChessClient implements ServerMessageObserver {
             case "create":
                 yield createGame(out, params);
             case "join":
-                yield joinGame(out, params);
+                yield joinGame(params);
             case "list":
                 yield listGames(out);
             case "logout":
                 yield logout(out);
             case "observe":
-                yield(observe(out, params));
+                yield(observe(params));
             case "help":
                 yield help(out);
             case "move":
                 yield makeMove(params);
             case "resign":
                 yield resign();
+            case "leave":
+                yield leave();
             default:
                 out.print(command + " is not a valid command. Possible commands:\n");
                 yield help(out);
         };
+    }
+
+    private String leave() {
+        server.leave(auth);
+        color = null;
+        return "leave";
     }
 
     private String resign() {
@@ -116,17 +125,17 @@ public class ChessClient implements ServerMessageObserver {
         return "resign";
     }
 
-    private String observe(PrintStream out, String[] params) {
+    private String observe(String[] params) {
         if (state.equals(State.LOGGED_IN)) {
             if (params.length == 1) {
                 int gameID;
                 try {
                     gameID = Integer.parseInt(params[0]);
+                    server.joinGame(new JoinGameRequest(auth, null, gameID));
                 } catch (Exception ex) {
                     throw new ResponseException("usage: observe <GAME_ID>", 403);
                 }
-                ChessGame game = getGame(gameID);
-                printBoard(out, game, ChessGame.TeamColor.WHITE);
+                this.color = ChessGame.TeamColor.WHITE;
                 return "observe";
             }
             throw new ResponseException("usage: observe <GAME_ID>", 400);
@@ -134,7 +143,7 @@ public class ChessClient implements ServerMessageObserver {
         throw new ResponseException("please log in :)\n for options, type help", 400);
     }
 
-    private String joinGame(PrintStream out, String[] params) {
+    private String joinGame(String[] params) {
         if (state.equals(State.LOGGED_IN)) {
             if (params.length == 2) {
                 int gameID;
@@ -143,12 +152,16 @@ public class ChessClient implements ServerMessageObserver {
                 } catch (Exception ex) {
                     throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 403);
                 }
+
+                getGame(gameID);
+
                 ChessGame.TeamColor color;
                 switch (params[1]) {
                     case "black" -> color = ChessGame.TeamColor.BLACK;
                     case "white" -> color = ChessGame.TeamColor.WHITE;
                     default -> throw new ResponseException("invalid color", 400);
                 }
+
                 try {
                     server.joinGame(new JoinGameRequest(auth, color, gameID));
                 } catch (ResponseException ex) {
@@ -160,9 +173,8 @@ public class ChessClient implements ServerMessageObserver {
                 } catch (Exception ex) {
                     throw new ResponseException("server error.", 500);
                 }
-                ChessGame game = getGame(gameID);
-                printBoard(out, game, color);
                 state = State.GAME;
+                this.color = color;
                 return "join";
             }
             throw new ResponseException("usage: join <GAME_ID> <WHITE|BLACK>", 400);
@@ -278,13 +290,12 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
-    private ChessGame getGame(int gameID) {
+    private void getGame(int gameID) {
         ListGamesResult result = server.listGames(new ListGamesRequest(auth));
         List<GameData> lst = result.games();
         if (gameID < 1 || gameID > lst.size()) {
             throw new ResponseException("game does not exist. please join one of the available games.", 403);
         }
-        return lst.get(gameID - 1).game();
     }
 
     private void printBoard(PrintStream out, ChessGame game, ChessGame.TeamColor color) {

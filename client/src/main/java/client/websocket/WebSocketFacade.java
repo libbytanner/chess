@@ -2,12 +2,16 @@ package client.websocket;
 
 import chess.ChessMove;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 import jakarta.websocket.*;
 import model.ResponseException;
 import websocket.commands.ConnectCommand;
+import websocket.commands.LeaveGameCommand;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.ResignCommand;
-import websocket.messages.NotificationMessage;
+import websocket.messages.*;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,13 +32,35 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
+                    Gson gson = createMessageSerializer();
+                    ServerMessage notification = gson.fromJson(message, ServerMessage.class);
                     serverMessageObserver.notify(notification);
                 }
             });
         } catch (DeploymentException | IOException ex) {
             throw new ResponseException(ex.getMessage(), 500);
         }
+    }
+
+    public Gson createMessageSerializer() {
+        GsonBuilder serializer = new GsonBuilder();
+        serializer.registerTypeAdapter(ServerMessage.class,
+                (JsonDeserializer<ServerMessage>) (el, serverMessageType, ctx) -> {
+                    ServerMessage message = null;
+                    if (el.isJsonObject()) {
+                        String messageType = el.getAsJsonObject().get("serverMessageType").getAsString();
+                        switch (ServerMessage.ServerMessageType.valueOf(messageType)) {
+                            case ServerMessage.ServerMessageType.NOTIFICATION ->
+                                    message = ctx.deserialize(el, NotificationMessage.class);
+                            case ServerMessage.ServerMessageType.LOAD_GAME ->
+                                    message = ctx.deserialize(el, LoadGameMessage.class);
+                            case ServerMessage.ServerMessageType.ERROR ->
+                                    message = ctx.deserialize(el, ErrorMessage.class);
+                        }
+                    }
+                    return message;
+                });
+        return serializer.create();
     }
 
     @Override
@@ -64,6 +90,15 @@ public class WebSocketFacade extends Endpoint {
         try {
             ResignCommand resignCommand = new ResignCommand(authToken, gameID);
             this.session.getBasicRemote().sendText(new Gson().toJson(resignCommand));
+        } catch (IOException e) {
+            throw new ResponseException(e.getMessage(), 500);
+        }
+    }
+
+    public void leave(String authToken) {
+        try {
+            LeaveGameCommand leaveCommand = new LeaveGameCommand(authToken, gameID);
+            this.session.getBasicRemote().sendText(new Gson().toJson(leaveCommand));
         } catch (IOException e) {
             throw new ResponseException(e.getMessage(), 500);
         }

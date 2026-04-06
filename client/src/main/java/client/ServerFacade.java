@@ -154,4 +154,8 @@ public class ServerFacade {
     public void resign(String authToken) {
         ws.resign(authToken);
     }
+
+    public void leave(String auth) {
+        ws.leave(auth);
+    }
 }
