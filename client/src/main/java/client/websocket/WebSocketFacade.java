@@ -103,4 +103,8 @@ public class WebSocketFacade extends Endpoint {
             throw new ResponseException(e.getMessage(), 500);
         }
     }
+
+    public void redraw(String authToken) {
+
+    }
 }

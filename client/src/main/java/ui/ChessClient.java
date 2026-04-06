@@ -24,6 +24,7 @@ public class ChessClient implements ServerMessageObserver {
     private State state;
     private PrintStream out;
     private ChessGame.TeamColor color;
+    private ChessGame currentGame;
 
     @Override
     public void notify(ServerMessage message) {
@@ -40,7 +41,9 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     public void load_game(LoadGameMessage message) {
-        printBoard(out, message.getGame(), color);
+        BoardPrinter printer = new BoardPrinter();
+        printer.printBoard(out, message.getGame(), color);
+        this.currentGame = message.getGame();
     }
 
     public void error(ErrorMessage message) {
@@ -48,8 +51,6 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private enum State {LOGGED_IN, LOGGED_OUT, GAME}
-
-    private static final int CHESS_BOARD_SIZE = 8;
 
     public ChessClient(int port) {
         server = new ServerFacade(port, this);
@@ -108,10 +109,26 @@ public class ChessClient implements ServerMessageObserver {
                 yield resign();
             case "leave":
                 yield leave();
+            case "redraw":
+                yield redraw();
+            case "highlight":
+                yield highlight(params);
             default:
                 out.print(command + " is not a valid command. Possible commands:\n");
                 yield help(out);
         };
+    }
+
+    private String highlight(String...params) {
+        BoardPrinter printer = new BoardPrinter();
+        printer.printBoard(out, currentGame, color);
+        return "highlight";
+    }
+
+    private String redraw() {
+        BoardPrinter printer = new BoardPrinter();
+        printer.printBoard(out, currentGame, color);
+        return "redraw";
     }
 
     private String leave() {
@@ -282,7 +299,7 @@ public class ChessClient implements ServerMessageObserver {
             out.print(SET_TEXT_COLOR_MAGENTA + """
                     \tmove <old_position> <new_position> - move
                     \tredraw - redraw the chess board
-                    \thighlight <ID> - highlight legal moves
+                    \thighlight <position> - highlight legal moves for a piece at given position
                     \tleave - leave the game
                     \tresign - forfeit
                     """);
@@ -296,145 +313,6 @@ public class ChessClient implements ServerMessageObserver {
         if (gameID < 1 || gameID > lst.size()) {
             throw new ResponseException("game does not exist. please join one of the available games.", 403);
         }
-    }
-
-    private void printBoard(PrintStream out, ChessGame game, ChessGame.TeamColor color) {
-        ChessBoard board = game.getBoard();
-//        out.print(ERASE_SCREEN);
-//        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
-        out.print(SET_BG_COLOR_DARK_GREY + "\n");
-        out.print(SET_TEXT_BOLD);
-        printLetterHeaders(out, color);
-        setBlack(out);
-        if (color.equals(ChessGame.TeamColor.WHITE)) {
-            printForWhite(out, board);
-        } else {
-            printForBlack(out, board);
-        }
-        out.print(SET_BG_COLOR_DARK_GREY);
-        printLetterHeaders(out, color);
-        out.print("\n");
-        out.print(RESET_BG_COLOR + RESET_TEXT_BOLD_FAINT);
-    }
-
-    private ChessGame.TeamColor printSquare(PrintStream out, ChessGame.TeamColor current, ChessPiece piece) {
-        if (current.equals(ChessGame.TeamColor.WHITE)) {
-            current = ChessGame.TeamColor.BLACK;
-            setBlack(out);
-        } else {
-            current = ChessGame.TeamColor.WHITE;
-            setWhite(out);
-        }
-        out.print(getPieceCharacter(piece));
-        return current;
-    }
-
-    private void printForWhite(PrintStream out, ChessBoard board) {
-        ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
-        for (int i = CHESS_BOARD_SIZE; i > 0; i--) {
-            printSideNumber(out, i);
-            for (int j = 1; j <= CHESS_BOARD_SIZE; j++) {
-                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                current = printSquare(out, current, piece);
-            }
-            printSideNumber(out, i);
-            out.print("\n");
-            current = switchColor(current, out);
-        }
-    }
-
-    private void printForBlack(PrintStream out, ChessBoard board) {
-        ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
-        for (int i = 1; i <= CHESS_BOARD_SIZE; i++) {
-            printSideNumber(out, i);
-            for (int j = CHESS_BOARD_SIZE; j > 0; j--) {
-                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                current = printSquare(out, current, piece);
-            }
-            printSideNumber(out, i);
-            out.print("\n");
-            current = switchColor(current, out);
-        }
-    }
-
-    private String getPieceCharacter(ChessPiece piece) {
-        if (piece == null) {
-            return (EMPTY);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.PAWN) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            return (BLACK_PAWN);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.PAWN) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-            return (WHITE_PAWN);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.KNIGHT) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            return (BLACK_KNIGHT);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.KNIGHT) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-            return (WHITE_KNIGHT);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.ROOK) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            return (BLACK_ROOK);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.ROOK) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-            return (WHITE_ROOK);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.BISHOP) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            return (BLACK_BISHOP);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.BISHOP) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-            return (WHITE_BISHOP);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.QUEEN) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            return (BLACK_QUEEN);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.QUEEN) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-            return (WHITE_QUEEN);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.KING) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            return (BLACK_KING);
-        } else if (piece.getPieceType().equals(ChessPiece.PieceType.KING) &&
-                piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-            return (WHITE_KING);
-        }
-        throw new ResponseException("Server Error", 500);
-    }
-
-    private void printLetterHeaders(PrintStream out, ChessGame.TeamColor color) {
-        List<String> cols = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h");
-        out.print(SET_TEXT_COLOR_BLUE + "   ");
-        if (color.equals(ChessGame.TeamColor.BLACK)) {
-            cols = cols.reversed();
-        }
-        for (String col : cols) {
-            out.print(" " + col + " ");
-        }
-        out.print("\n");
-    }
-
-    private void printSideNumber(PrintStream out, int i) {
-        out.print(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLUE);
-        out.print(" " + i + " ");
-    }
-
-    private ChessGame.TeamColor switchColor(ChessGame.TeamColor current, PrintStream out) {
-        if (current.equals(ChessGame.TeamColor.WHITE)) {
-            setBlack(out);
-            return ChessGame.TeamColor.BLACK;
-        } else {
-            setWhite(out);
-            return ChessGame.TeamColor.WHITE;
-        }
-    }
-
-    private void setBlack(PrintStream out) {
-        out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_MAGENTA);
-    }
-
-    private void setWhite(PrintStream out) {
-        out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_MAGENTA);
     }
 
     private String makeMove(String... params) {
