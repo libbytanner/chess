@@ -123,13 +123,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     ServerMessage.ServerMessageType.NOTIFICATION,
                     "white in check!");
             connections.broadcast(null, game.gameID(), checkmateNotification);
-            game.game().setTeamTurn(null);
         } if (game.game().isInCheck(ChessGame.TeamColor.BLACK)) {
             var checkmateNotification = new NotificationMessage(
                     ServerMessage.ServerMessageType.NOTIFICATION,
                     "black in check!");
             connections.broadcast(null, game.gameID(), checkmateNotification);
-            game.game().setTeamTurn(null);
         }
     }
 

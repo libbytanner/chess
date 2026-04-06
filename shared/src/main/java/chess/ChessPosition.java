@@ -48,7 +48,7 @@ public class ChessPosition {
             case 7 -> rowString = "g";
             case 8 -> rowString = "h";
         }
-        return String.format("[%s, %d]", rowString, col);
+        return String.format("%s%d", rowString, col);
     }
 
     @Override

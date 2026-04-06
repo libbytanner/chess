@@ -13,6 +13,7 @@ import websocket.messages.ServerMessage;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 
@@ -29,20 +30,20 @@ public class ChessClient implements ServerMessageObserver {
     @Override
     public void notify(ServerMessage message) {
         switch (message.getServerMessageType()) {
-            case NOTIFICATION -> notify_message((NotificationMessage) message);
-            case LOAD_GAME -> load_game((LoadGameMessage) message);
+            case NOTIFICATION -> notifyMessage((NotificationMessage) message);
+            case LOAD_GAME -> loadGame((LoadGameMessage) message);
             case ERROR -> error((ErrorMessage) message);
         }
         printPrompt(out);
     }
 
-    public void notify_message(NotificationMessage message) {
+    public void notifyMessage(NotificationMessage message) {
         out.print(SET_TEXT_COLOR_MAGENTA + message.getMessage() + "\n");
     }
 
-    public void load_game(LoadGameMessage message) {
+    public void loadGame(LoadGameMessage message) {
         BoardPrinter printer = new BoardPrinter();
-        printer.printBoard(out, message.getGame(), color);
+        printer.printBoard(out, message.getGame(), color, null, null);
         this.currentGame = message.getGame();
     }
 
@@ -119,21 +120,48 @@ public class ChessClient implements ServerMessageObserver {
         };
     }
 
+    private ChessPosition makePosition(String position) {
+        int row;
+        int col = Integer.parseInt(position.substring(position.length() - 1));
+        switch (position.charAt(0)) {
+            case 'a' -> row = 1;
+            case 'b' -> row = 2;
+            case 'c' -> row = 3;
+            case 'd' -> row = 4;
+            case 'e' -> row = 5;
+            case 'f' -> row = 6;
+            case 'g' -> row = 7;
+            case 'h' -> row = 8;
+            default -> row = 0;
+        }
+        if (row == 0 || col < 1 || col > 8) {
+            throw new ResponseException("Invalid position. Ex: move e4 d5 [optional promotion piece]", 400);
+        }
+        return new ChessPosition(col, row);
+    }
+
     private String highlight(String...params) {
         BoardPrinter printer = new BoardPrinter();
-        printer.printBoard(out, currentGame, color);
+        ChessPosition position = makePosition(params[0]);
+        Collection<ChessMove> validMoves = currentGame.validMoves(position);
+        if (currentGame.getBoard().getPiece(position) == null) {
+            throw new ResponseException("There is no piece at that position", 400);
+        }
+        printer.printBoard(out, currentGame, color, validMoves, position);
         return "highlight";
     }
 
     private String redraw() {
         BoardPrinter printer = new BoardPrinter();
-        printer.printBoard(out, currentGame, color);
+        printer.printBoard(out, currentGame, color, null, null);
         return "redraw";
     }
 
     private String leave() {
         server.leave(auth);
         color = null;
+        currentGame = null;
+        state = State.LOGGED_IN;
         return "leave";
     }
 
@@ -316,10 +344,25 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String makeMove(String... params) {
-        if (params.length != 2) {
+        if (params.length < 2 || params.length > 3) {
             throw new ResponseException("usage: move <start> <end>", 400);
         }
-        server.makeMove(auth, params);
+        ChessPosition start = makePosition(params[0]);
+        ChessPosition end = makePosition(params[1]);
+        ChessPiece.PieceType type;
+        if (params.length == 3) {
+            switch (params[2]) {
+                case "knight" -> type = ChessPiece.PieceType.KNIGHT;
+                case "queen" -> type = ChessPiece.PieceType.QUEEN;
+                case "rook" -> type = ChessPiece.PieceType.ROOK;
+                case "bishop" -> type = ChessPiece.PieceType.BISHOP;
+                default -> type = null;
+            }
+        } else {
+            type = null;
+        }
+        ChessMove move = new ChessMove(start, end, type);
+        server.makeMove(auth, move);
         return "move";
     }
 

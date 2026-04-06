@@ -1,21 +1,20 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import model.ResponseException;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static ui.EscapeSequences.*;
 import static ui.EscapeSequences.SET_TEXT_COLOR_MAGENTA;
 
 public class BoardPrinter {
-    private final int CHESS_BOARD_SIZE = 8;
-    public void printBoard(PrintStream out, ChessGame game, ChessGame.TeamColor color) {
+    private static final int CHESS_BOARD_SIZE = 8;
+    public void printBoard(PrintStream out, ChessGame game, ChessGame.TeamColor color,
+                           Collection<ChessMove> validMoves, ChessPosition currentPosition) {
         ChessBoard board = game.getBoard();
 //        out.print(ERASE_SCREEN);
 //        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
@@ -24,9 +23,9 @@ public class BoardPrinter {
         printLetterHeaders(out, color);
         setBlack(out);
         if (color.equals(ChessGame.TeamColor.WHITE)) {
-            printForWhite(out, board);
+            printForWhite(out, board, validMoves, currentPosition);
         } else {
-            printForBlack(out, board);
+            printForBlack(out, board, validMoves, currentPosition);
         }
         out.print(SET_BG_COLOR_DARK_GREY);
         printLetterHeaders(out, color);
@@ -34,25 +33,52 @@ public class BoardPrinter {
         out.print(RESET_BG_COLOR + RESET_TEXT_BOLD_FAINT);
     }
 
-    private ChessGame.TeamColor printSquare(PrintStream out, ChessGame.TeamColor current, ChessPiece piece) {
+    private ChessGame.TeamColor printSquare(PrintStream out, ChessGame.TeamColor current,
+                                            ChessPiece piece, boolean valid) {
         if (current.equals(ChessGame.TeamColor.WHITE)) {
             current = ChessGame.TeamColor.BLACK;
-            setBlack(out);
+            if (valid) {
+                setHighlightedBlack(out);
+            } else {
+                setBlack(out);
+            }
         } else {
             current = ChessGame.TeamColor.WHITE;
-            setWhite(out);
+            if (valid) {
+                setHighlightedWhite(out);
+            } else {
+                setWhite(out);
+            }
         }
         out.print(getPieceCharacter(piece));
         return current;
     }
 
-    private void printForWhite(PrintStream out, ChessBoard board) {
+    private void printForWhite(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions, ChessPosition currentPosition) {
         ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
         for (int i = CHESS_BOARD_SIZE; i > 0; i--) {
             printSideNumber(out, i);
             for (int j = 1; j <= CHESS_BOARD_SIZE; j++) {
-                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                current = printSquare(out, current, piece);
+                ChessPosition position = new ChessPosition(i, j);
+                ChessPiece piece = board.getPiece(position);
+                if (currentPosition != null) {
+                    ChessMove move = new ChessMove(currentPosition, position, null);
+                    if (position.equals(currentPosition)) {
+                        if (current.equals(ChessGame.TeamColor.WHITE)) {
+                            current = ChessGame.TeamColor.BLACK;
+                        } else {
+                            current = ChessGame.TeamColor.WHITE;
+                        }
+                        out.print(SET_BG_COLOR_YELLOW);
+                        out.print(getPieceCharacter(piece));
+                    } else if (validPositions.contains(move)) {
+                        current = printSquare(out, current, piece, true);
+                    } else {
+                        current = printSquare(out, current, piece, false);
+                    }
+                } else {
+                    current = printSquare(out, current, piece, false);
+                }
             }
             printSideNumber(out, i);
             out.print("\n");
@@ -60,13 +86,31 @@ public class BoardPrinter {
         }
     }
 
-    private void printForBlack(PrintStream out, ChessBoard board) {
+    private void printForBlack(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions, ChessPosition currentPosition) {
         ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
         for (int i = 1; i <= CHESS_BOARD_SIZE; i++) {
             printSideNumber(out, i);
             for (int j = CHESS_BOARD_SIZE; j > 0; j--) {
-                ChessPiece piece = board.getPiece(new ChessPosition(i, j));
-                current = printSquare(out, current, piece);
+                ChessPosition position = new ChessPosition(i, j);
+                ChessPiece piece = board.getPiece(position);
+                if (currentPosition != null) {
+                    ChessMove move = new ChessMove(currentPosition, position, null);
+                    if (position.equals(currentPosition)) {
+                        if (current.equals(ChessGame.TeamColor.WHITE)) {
+                            current = ChessGame.TeamColor.BLACK;
+                        } else {
+                            current = ChessGame.TeamColor.WHITE;
+                        }
+                        out.print(SET_BG_COLOR_YELLOW);
+                        out.print(getPieceCharacter(piece));
+                    } else if (validPositions.contains(move)) {
+                        current = printSquare(out, current, piece, true);
+                    } else {
+                        current = printSquare(out, current, piece, false);
+                    }
+                } else {
+                    current = printSquare(out, current, piece, false);
+                }
             }
             printSideNumber(out, i);
             out.print("\n");
@@ -149,8 +193,18 @@ public class BoardPrinter {
         out.print(SET_TEXT_COLOR_MAGENTA);
     }
 
+    private void setHighlightedBlack(PrintStream out) {
+        out.print(SET_BG_COLOR_DARK_GREEN);
+        out.print(SET_TEXT_COLOR_MAGENTA);
+    }
+
     private void setWhite(PrintStream out) {
         out.print(SET_BG_COLOR_WHITE);
+        out.print(SET_TEXT_COLOR_MAGENTA);
+    }
+
+    private void setHighlightedWhite(PrintStream out) {
+        out.print(SET_BG_COLOR_GREEN);
         out.print(SET_TEXT_COLOR_MAGENTA);
     }
 
