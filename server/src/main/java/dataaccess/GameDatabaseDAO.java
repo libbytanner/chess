@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import model.model.GameData;
 
 import java.sql.Connection;
@@ -17,7 +18,7 @@ public class GameDatabaseDAO implements GameDAO {
     }
 
     private String toJson(ChessGame game) {
-        var serializer = new Gson();
+        var serializer = new GsonBuilder().serializeNulls().create();
         return serializer.toJson(game);
     }
 
