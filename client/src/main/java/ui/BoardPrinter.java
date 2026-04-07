@@ -67,7 +67,8 @@ public class BoardPrinter {
         }
     }
 
-    private ChessGame.TeamColor evalSquare(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions, ChessPosition currentPosition, ChessGame.TeamColor current, int i, int j) {
+    private ChessGame.TeamColor evalSquare(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions,
+                                           ChessPosition currentPosition, ChessGame.TeamColor current, int i, int j) {
         ChessPosition position = new ChessPosition(i, j);
         ChessPiece piece = board.getPiece(position);
         if (currentPosition != null) {
