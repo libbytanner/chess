@@ -59,26 +59,7 @@ public class BoardPrinter {
         for (int i = CHESS_BOARD_SIZE; i > 0; i--) {
             printSideNumber(out, i);
             for (int j = 1; j <= CHESS_BOARD_SIZE; j++) {
-                ChessPosition position = new ChessPosition(i, j);
-                ChessPiece piece = board.getPiece(position);
-                if (currentPosition != null) {
-                    ChessMove move = new ChessMove(currentPosition, position, null);
-                    if (position.equals(currentPosition)) {
-                        if (current.equals(ChessGame.TeamColor.WHITE)) {
-                            current = ChessGame.TeamColor.BLACK;
-                        } else {
-                            current = ChessGame.TeamColor.WHITE;
-                        }
-                        out.print(SET_BG_COLOR_YELLOW);
-                        out.print(getPieceCharacter(piece));
-                    } else if (validPositions.contains(move)) {
-                        current = printSquare(out, current, piece, true);
-                    } else {
-                        current = printSquare(out, current, piece, false);
-                    }
-                } else {
-                    current = printSquare(out, current, piece, false);
-                }
+                current = evalSquare(out, board, validPositions, currentPosition, current, i, j);
             }
             printSideNumber(out, i);
             out.print("\n");
@@ -86,31 +67,36 @@ public class BoardPrinter {
         }
     }
 
+    private ChessGame.TeamColor evalSquare(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions, ChessPosition currentPosition, ChessGame.TeamColor current, int i, int j) {
+        ChessPosition position = new ChessPosition(i, j);
+        ChessPiece piece = board.getPiece(position);
+        if (currentPosition != null) {
+            ChessMove move = new ChessMove(currentPosition, position, null);
+            if (position.equals(currentPosition)) {
+                if (current.equals(ChessGame.TeamColor.WHITE)) {
+                    current = ChessGame.TeamColor.BLACK;
+                } else {
+                    current = ChessGame.TeamColor.WHITE;
+                }
+                out.print(SET_BG_COLOR_YELLOW);
+                out.print(getPieceCharacter(piece));
+            } else if (validPositions.contains(move)) {
+                current = printSquare(out, current, piece, true);
+            } else {
+                current = printSquare(out, current, piece, false);
+            }
+        } else {
+            current = printSquare(out, current, piece, false);
+        }
+        return current;
+    }
+
     private void printForBlack(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions, ChessPosition currentPosition) {
         ChessGame.TeamColor current = ChessGame.TeamColor.BLACK;
         for (int i = 1; i <= CHESS_BOARD_SIZE; i++) {
             printSideNumber(out, i);
             for (int j = CHESS_BOARD_SIZE; j > 0; j--) {
-                ChessPosition position = new ChessPosition(i, j);
-                ChessPiece piece = board.getPiece(position);
-                if (currentPosition != null) {
-                    ChessMove move = new ChessMove(currentPosition, position, null);
-                    if (position.equals(currentPosition)) {
-                        if (current.equals(ChessGame.TeamColor.WHITE)) {
-                            current = ChessGame.TeamColor.BLACK;
-                        } else {
-                            current = ChessGame.TeamColor.WHITE;
-                        }
-                        out.print(SET_BG_COLOR_YELLOW);
-                        out.print(getPieceCharacter(piece));
-                    } else if (validPositions.contains(move)) {
-                        current = printSquare(out, current, piece, true);
-                    } else {
-                        current = printSquare(out, current, piece, false);
-                    }
-                } else {
-                    current = printSquare(out, current, piece, false);
-                }
+                current = evalSquare(out, board, validPositions, currentPosition, current, i, j);
             }
             printSideNumber(out, i);
             out.print("\n");

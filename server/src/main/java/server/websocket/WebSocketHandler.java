@@ -161,10 +161,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                         connections.broadcast(session, gameID, notification);
                         gameDao.updateGame(game, null, username, game.game());
 
-                        if (!checkCheckmate(game)) {
-                            checkCheck(game);
-                        }
-                        checkStalemate(game);
+                        checkStatus(game);
 
                         gameDao.updateGame(game, null, username, game.game());
                     } catch (InvalidMoveException e) {
@@ -176,6 +173,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 }
             }
         }
+    }
+
+    private void checkStatus(GameData game) throws IOException {
+        if (!checkCheckmate(game)) {
+            checkCheck(game);
+        }
+        checkStalemate(game);
     }
 
     private void checkStalemate(GameData game) throws IOException {
