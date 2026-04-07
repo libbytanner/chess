@@ -226,7 +226,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     "Error: Can't resign once game has ended");
             connections.send(session, error);
         } else {
-            String message = String.format("resign %s", username);
+            String message = String.format("%s resigned", username);
 
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
             connections.broadcast(null, command.getGameID(), notification);
