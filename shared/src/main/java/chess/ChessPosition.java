@@ -37,18 +37,18 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        String rowString = null;
-        switch (row) {
-            case 1 -> rowString = "a";
-            case 2 -> rowString = "b";
-            case 3 -> rowString = "c";
-            case 4 -> rowString = "d";
-            case 5 -> rowString = "e";
-            case 6 -> rowString = "f";
-            case 7 -> rowString = "g";
-            case 8 -> rowString = "h";
+        String colString = null;
+        switch (col) {
+            case 1 -> colString = "a";
+            case 2 -> colString = "b";
+            case 3 -> colString = "c";
+            case 4 -> colString = "d";
+            case 5 -> colString = "e";
+            case 6 -> colString = "f";
+            case 7 -> colString = "g";
+            case 8 -> colString = "h";
         }
-        return String.format("%s%d", rowString, col);
+        return String.format("%s%d", colString, row);
     }
 
     @Override
