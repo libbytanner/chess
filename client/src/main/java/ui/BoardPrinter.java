@@ -20,6 +20,9 @@ public class BoardPrinter {
 //        out.print(moveCursorToLocation(100, 100) + SET_BG_COLOR_DARK_GREY + "\n");
         out.print(SET_BG_COLOR_DARK_GREY + "\n");
         out.print(SET_TEXT_BOLD);
+        if (color == null) {
+            color = ChessGame.TeamColor.WHITE;
+        }
         printLetterHeaders(out, color);
         setBlack(out);
         if (color.equals(ChessGame.TeamColor.WHITE)) {
@@ -72,7 +75,7 @@ public class BoardPrinter {
         ChessPosition position = new ChessPosition(i, j);
         ChessPiece piece = board.getPiece(position);
         if (currentPosition != null) {
-            ChessMove move = new ChessMove(currentPosition, position, null);
+            ChessMove move = getChessMove(currentPosition, position, board);
             if (position.equals(currentPosition)) {
                 if (current.equals(ChessGame.TeamColor.WHITE)) {
                     current = ChessGame.TeamColor.BLACK;
@@ -90,6 +93,19 @@ public class BoardPrinter {
             current = printSquare(out, current, piece, false);
         }
         return current;
+    }
+
+    private static ChessMove getChessMove(ChessPosition currentPosition, ChessPosition position, ChessBoard board) {
+        ChessPiece piece = board.getPiece(currentPosition);
+        ChessMove move = new ChessMove(currentPosition, position, null);
+        if (piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
+            if (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) && position.getRow() == 8) {
+                move = new ChessMove(currentPosition, position, ChessPiece.PieceType.BISHOP);
+            } else if (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK) && position.getRow() == 1) {
+                move = new ChessMove(currentPosition, position, ChessPiece.PieceType.BISHOP);
+            }
+        }
+        return move;
     }
 
     private void printForBlack(PrintStream out, ChessBoard board, Collection<ChessMove> validPositions, ChessPosition currentPosition) {

@@ -67,15 +67,17 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void join(String authToken, int gameID) {
+    public void join(String authToken, int gameID, ConnectCommand.Type type) {
         try {
-            ConnectCommand connectCommand = new ConnectCommand(authToken, gameID);
+            ConnectCommand connectCommand = new ConnectCommand(authToken, gameID, type);
             this.session.getBasicRemote().sendText(new Gson().toJson(connectCommand));
             this.gameID = gameID;
         } catch (IOException e) {
             throw new ResponseException(e.getMessage(), 500);
         }
     }
+
+
 
     public void makeMove(String authToken, ChessMove move) {
         try {
@@ -102,9 +104,5 @@ public class WebSocketFacade extends Endpoint {
         } catch (IOException e) {
             throw new ResponseException(e.getMessage(), 500);
         }
-    }
-
-    public void redraw(String authToken) {
-
     }
 }

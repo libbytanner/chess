@@ -43,12 +43,12 @@ public class GameService extends Service{
         if (game == null) {
             throw new DataAccessException("Game does not exist");
         } else if (request.playerColor().equals(ChessGame.TeamColor.WHITE)) {
-            if (game.whiteUsername() != null) {
+            if (game.whiteUsername() != null && !game.whiteUsername().equals(username)) {
                 throw new ForbiddenResponse("Color Taken");
             }
             gameDao.updateGame(game, request.playerColor(), username, game.game());
         } else if (request.playerColor().equals(ChessGame.TeamColor.BLACK)) {
-            if (game.blackUsername() != null) {
+            if (game.blackUsername() != null && !game.blackUsername().equals(username)) {
                 throw new ForbiddenResponse("Color Taken");
             }
             gameDao.updateGame(game, request.playerColor(), username, game.game());

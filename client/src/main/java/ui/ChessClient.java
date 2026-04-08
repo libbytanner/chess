@@ -51,7 +51,7 @@ public class ChessClient implements ServerMessageObserver {
         out.print(SET_TEXT_COLOR_RED + message.getMessage() + "\n");
     }
 
-    private enum State {LOGGED_IN, LOGGED_OUT, GAME}
+    private enum State {LOGGED_IN, LOGGED_OUT, GAME, OBSERVE}
 
     public ChessClient(int port) {
         server = new ServerFacade(port, this);
@@ -142,11 +142,16 @@ public class ChessClient implements ServerMessageObserver {
 
     private String highlight(String...params) {
         BoardPrinter printer = new BoardPrinter();
-        ChessPosition position = makePosition(params[0]);
-        Collection<ChessMove> validMoves = currentGame.validMoves(position);
+        ChessPosition position;
+        try {
+            position = makePosition(params[0]);
+        } catch (Exception ex) {
+            throw new ResponseException("usage: highlight <position>", 400);
+        }
         if (currentGame.getBoard().getPiece(position) == null) {
             throw new ResponseException("There is no piece at that position", 400);
         }
+        Collection<ChessMove> validMoves = currentGame.validMoves(position);
         printer.printBoard(out, currentGame, color, validMoves, position);
         return "highlight";
     }
@@ -166,7 +171,19 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String resign() {
-        server.resign(auth);
+        if (!state.equals(State.GAME)) {
+            throw new ResponseException("you are not in a game", 400);
+        }
+        out.print("are you sure you want to resign? type yes or no\n");
+        printPrompt(out);
+        Scanner scanner = new Scanner(System.in);
+        String line = scanner.nextLine();
+        line = line.toLowerCase();
+        if (line.equals("yes")) {
+            server.resign(auth);
+        } if (line.equals("no")) {
+            out.print("you are still in the game\n");
+        }
         return "resign";
     }
 
@@ -176,16 +193,17 @@ public class ChessClient implements ServerMessageObserver {
                 int gameID;
                 try {
                     gameID = Integer.parseInt(params[0]);
-                    server.joinGame(new JoinGameRequest(auth, null, gameID));
+                    server.observe(new JoinGameRequest(auth, null, gameID));
+                    this.color = null;
+                    this.state = State.GAME;
                 } catch (Exception ex) {
-                    throw new ResponseException("usage: observe <GAME_ID>", 403);
+                    throw new ResponseException("another error", 403);
                 }
-                this.color = ChessGame.TeamColor.WHITE;
                 return "observe";
             }
             throw new ResponseException("usage: observe <GAME_ID>", 400);
         }
-        throw new ResponseException("please log in :)\n for options, type help", 400);
+        throw new ResponseException("for valid commands, type help", 400);
     }
 
     private String joinGame(String[] params) {
@@ -212,7 +230,7 @@ public class ChessClient implements ServerMessageObserver {
                 } catch (ResponseException ex) {
                     if (ex.getMessage().equals("bad request")) {
                         throw new ResponseException("game does not exist. please join an available game", 400);
-                    } else if (ex.getMessage().equals("forbidden")) {
+                    } else if (ex.getCode() == 403) {
                         throw new ResponseException("color taken. please join as another color, or join a different game.", 403);
                     }
                 } catch (Exception ex) {
@@ -242,6 +260,7 @@ public class ChessClient implements ServerMessageObserver {
     private String listGames(PrintStream out) {
         if (state.equals(State.LOGGED_IN)) {
             ListGamesResult result = server.listGames(new ListGamesRequest(auth));
+            out.print(SET_TEXT_COLOR_MAGENTA);
             for (int i = 0; i < result.games().size(); i++) {
                 GameData game = result.games().get(i);
                 out.format("\t%d. %s   White Player: %s   Black Player: %s\n",
@@ -344,26 +363,35 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private String makeMove(String... params) {
-        if (params.length < 2 || params.length > 3) {
-            throw new ResponseException("usage: move <start> <end>", 400);
-        }
-        ChessPosition start = makePosition(params[0]);
-        ChessPosition end = makePosition(params[1]);
-        ChessPiece.PieceType type;
-        if (params.length == 3) {
-            switch (params[2]) {
-                case "knight" -> type = ChessPiece.PieceType.KNIGHT;
-                case "queen" -> type = ChessPiece.PieceType.QUEEN;
-                case "rook" -> type = ChessPiece.PieceType.ROOK;
-                case "bishop" -> type = ChessPiece.PieceType.BISHOP;
-                default -> type = null;
+        if (state.equals(State.GAME)) {
+            if (params.length < 2 || params.length > 3) {
+                throw new ResponseException("usage: move <start> <end>", 400);
             }
+            ChessMove move = null;
+            try {
+                ChessPosition start = makePosition(params[0]);
+                ChessPosition end = makePosition(params[1]);
+                ChessPiece.PieceType type;
+                if (params.length == 3) {
+                    switch (params[2]) {
+                        case "knight" -> type = ChessPiece.PieceType.KNIGHT;
+                        case "queen" -> type = ChessPiece.PieceType.QUEEN;
+                        case "rook" -> type = ChessPiece.PieceType.ROOK;
+                        case "bishop" -> type = ChessPiece.PieceType.BISHOP;
+                        default -> type = null;
+                    }
+                } else {
+                    type = null;
+                }
+                move = new ChessMove(start, end, type);
+            } catch (Exception e) {
+                throw new ResponseException("usage: move <start> <end>", 400);
+            }
+            server.makeMove(auth, move);
+            return "move";
         } else {
-            type = null;
+            throw new ResponseException("please join a game", 400);
         }
-        ChessMove move = new ChessMove(start, end, type);
-        server.makeMove(auth, move);
-        return "move";
     }
 
 }

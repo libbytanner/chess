@@ -6,6 +6,8 @@ import client.websocket.WebSocketFacade;
 import com.google.gson.Gson;
 import model.ResponseException;
 import model.model.*;
+import websocket.commands.ConnectCommand;
+
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 
@@ -53,8 +55,8 @@ public class ServerFacade {
     public void joinGame(JoinGameRequest joinRequest) {
         var request = buildRequest("PUT", "/game", joinRequest, joinRequest.authToken());
         var response = sendRequest(request);
-        ws.join(joinRequest.authToken(), joinRequest.gameID());
         handleResponse(response, null);
+        ws.join(joinRequest.authToken(), joinRequest.gameID(), ConnectCommand.Type.PLAYER);
     }
 
     public CreateGameResult createGame(CreateGameRequest createRequest) {
@@ -120,5 +122,9 @@ public class ServerFacade {
 
     public void leave(String auth) {
         ws.leave(auth);
+    }
+
+    public void observe(JoinGameRequest joinGameRequest) {
+        ws.join(joinGameRequest.authToken(), joinGameRequest.gameID(), ConnectCommand.Type.OBSERVER);
     }
 }
